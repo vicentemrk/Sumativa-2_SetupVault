@@ -3,128 +3,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SetupVault - Gestor de Hardware</title>
+    <title>SetupVault - Gestor Táctico de Hardware</title>
     
-    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- CSS y JS Propios -->
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a1f1a 0%, #0d2622 100%);
+            color: #e0e6ed;
+        }
+        
+        .scrollbar-hidden::-webkit-scrollbar { display: none; }
+        .scrollbar-hidden { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .badge-urgente { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .badge-planificada { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .badge-deseo { background: rgba(107, 114, 128, 0.15); color: #9ca3af; }
+        
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #ef4444;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        
+        .item-card {
+            background: rgba(255, 255, 255, 0.04);
+            border-left: 3px solid #10b981;
+            transition: all 0.3s ease;
+        }
+        
+        .item-card.urgente { border-left-color: #ef4444; }
+        .item-card.deseo { border-left-color: #9ca3af; }
+        
+        .item-card:hover {
+            transform: translateX(4px);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        
+        .icon-wrapper {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(16, 185, 129, 0.12);
+            border-radius: 8px;
+        }
+        
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+    </style>
 </head>
-<body>
-
-    <header class="header">
-        <div class="header-content">
-            <img src="logo.png" alt="SetupVault Logo" class="header-logo">
-            <div class="header-titles">
-                <h1>SetupVault</h1>
-                <p>Gestor Táctico de Presupuesto para Hardware</p>
-            </div>
-        </div>
-        <div class="header-actions">
-            <button id="btn-export-json" class="btn-secondary" aria-label="Exportar datos a JSON">
-                <i class="ph ph-download-simple"></i> Exportar
-            </button>
-            <button id="btn-hard-reset" class="btn-danger" aria-label="Borrar todos los datos">
-                <i class="ph ph-warning"></i> Hard Reset
-            </button>
-        </div>
-    </header>
-
-    <main class="container">
-        <!-- Sección de Ingreso de Artículos -->
-        <section class="panel input-section">
-            <h2>Añadir Nuevo Artículo</h2>
-            <form id="setup-form" novalidate>
-                <div class="form-group">
-                    <label for="item-name">Nombre del Artículo</label>
-                    <input type="text" id="item-name" placeholder="Ej: Teclado Mecánico 60%" required aria-required="true">
-                    <span class="error-msg" id="error-name" aria-live="polite"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="item-price">Precio Estimado (CLP)</label>
-                    <input type="number" id="item-price" placeholder="Ej: 45000" min="1" step="1" required aria-required="true">
-                    <span class="error-msg" id="error-price" aria-live="polite"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="item-priority">Prioridad de Compra</label>
-                    <select id="item-priority" required aria-required="true">
-                        <option value="" disabled selected>Selecciona una opción...</option>
-                        <option value="Urgente">Urgente (Rojo)</option>
-                        <option value="Planificada">Planificada (Azul)</option>
-                        <option value="Deseo">Deseo (Gris)</option>
-                    </select>
-                    <span class="error-msg" id="error-priority" aria-live="polite"></span>
-                </div>
-
-                <button type="submit" class="btn-submit">
-                    <i class="ph ph-plus-circle"></i> Agregar al Presupuesto
-                </button>
-            </form>
-        </section>
-
-        <!-- Sección de Resumen (Gasto Total y Presupuesto) -->
-        <section class="panel summary-section">
-            <div class="summary-grid">
-                <!-- Tarjeta Gasto Total -->
-                <div class="summary-card">
-                    <i class="ph ph-wallet"></i>
-                    <div>
-                        <h3>Gasto Total Estimado</h3>
-                        <p class="total-amount" id="total-amount">$0</p>
-                    </div>
-                </div>
-
-                <!-- Tarjeta Presupuesto Principal -->
-                <div class="summary-card budget-card">
-                    <i class="ph ph-bank"></i>
-                    <div class="budget-input-wrapper">
-                        <h3>Presupuesto Principal</h3>
-                        <div class="budget-control">
-                            <input type="number" id="main-budget-input" placeholder="Ej: 1000000" min="0">
-                            <button id="btn-save-budget" class="btn-secondary">Guardar</button>
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="border-b border-white/5 sticky top-0 z-50 bg-slate-950/50 backdrop-blur-xl">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <!-- Logo + Title -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                            </svg>
                         </div>
-                        <p id="budget-balance" class="budget-balance">Ingresa tu presupuesto total</p>
+                        <div>
+                            <h1 class="text-xl font-semibold text-white tracking-tight">SetupVault</h1>
+                            <p class="text-xs text-slate-400">Gestor de Hardware</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2">
+                        <button id="btn-export" class="btn-secondary px-3 py-2 rounded-lg text-sm font-medium text-white/80 flex items-center gap-2 hover:text-white">
+                            <i data-lucide="download" stroke-width="1.5" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">Exportar</span>
+                        </button>
+                        <button id="btn-reset" class="btn-danger px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+                            <i data-lucide="trash-2" stroke-width="1.5" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">Reset</span>
+                        </button>
                     </div>
                 </div>
             </div>
-        </section>
+        </header>
 
-        <!-- Lista de Artículos (Grid 1-2-4) -->
-        <section class="items-section">
-            <h2>Mi Inventario de Setup</h2>
-            <div id="items-grid" class="items-grid">
-                <!-- Los items dinámicos aparecerán aquí -->
-            </div>
+        <!-- Main -->
+        <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
             
-            <!-- Estado vacío (Fallback) -->
-            <div id="empty-state" class="empty-state hidden">
-                <i class="ph ph-ghost"></i>
-                <p>Tu bóveda está vacía. Añade tu primer hardware.</p>
+            <!-- Form Section -->
+            <div class="card rounded-xl p-6 sm:p-8 mb-8">
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold text-white tracking-tight">Nuevo Artículo</h2>
+                    <p class="text-sm text-slate-400 mt-1">Añade items a tu presupuesto</p>
+                </div>
+                
+                <form id="form-item" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Nombre</label>
+                        <input id="input-name" type="text" placeholder="Ej: RTX 4060" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
+                        <p id="error-name" class="text-xs text-red-400 mt-1 hidden"></p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Precio (CLP)</label>
+                        <input id="input-price" type="number" placeholder="45000" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
+                        <p id="error-price" class="text-xs text-red-400 mt-1 hidden"></p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Prioridad</label>
+                        <select id="input-priority" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white bg-slate-900/50">
+                            <option value="">Selecciona...</option>
+                            <option value="Urgente">Urgente</option>
+                            <option value="Planificada">Planificada</option>
+                            <option value="Deseo">Deseo</option>
+                        </select>
+                        <p id="error-priority" class="text-xs text-red-400 mt-1 hidden"></p>
+                    </div>
+                    
+                    <div class="flex items-end">
+                        <button type="submit" class="btn-primary w-full px-4 py-2.5 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2">
+                            <i data-lucide="plus-circle" stroke-width="1.5" class="w-4 h-4"></i>
+                            Agregar
+                        </button>
+                    </div>
+                </form>
             </div>
-        </section>
-    </main>
 
-    <!-- Modal de Confirmación para Hard Reset (A11y) -->
-    <div id="modal-reset" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-labelledby="modal-title">
-        <div class="modal-content">
-            <h3 id="modal-title"><i class="ph ph-warning-circle"></i> Advertencia Crítica</h3>
-            <p>¿Estás seguro de que deseas eliminar permanentemente todos los registros? Esta acción no se puede deshacer.</p>
-            <div class="modal-actions">
-                <button id="btn-cancel-reset" class="btn-secondary">Cancelar</button>
-                <button id="btn-confirm-reset" class="btn-danger">Sí, borrar todo</button>
+            <!-- Summary Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Total Spent -->
+                <div class="card rounded-xl p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Gasto Total</p>
+                            <h3 id="total-amount" class="text-3xl font-bold text-white mt-2">$0</h3>
+                        </div>
+                        <div class="icon-wrapper">
+                            <i data-lucide="wallet" stroke-width="1.5" class="w-5 h-5 text-emerald-400"></i>
+                        </div>
+                    </div>
+                    <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div id="budget-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Budget -->
+                <div class="card rounded-xl p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Presupuesto</p>
+                            <h3 id="budget-text" class="text-3xl font-bold text-white mt-2">—</h3>
+                        </div>
+                        <div class="icon-wrapper">
+                            <i data-lucide="target" stroke-width="1.5" class="w-5 h-5 text-emerald-400"></i>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <input id="input-budget" type="number" placeholder="1000000" class="input-field flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder-slate-500">
+                        <button id="btn-save-budget" class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium text-white">Guardar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Grid -->
+            <div>
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold text-white tracking-tight">Mi Inventario</h2>
+                    <p class="text-sm text-slate-400 mt-1" id="items-count">0 artículos</p>
+                </div>
+                
+                <div id="items-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Items rendered here -->
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                    <div class="mb-4 p-4 rounded-lg bg-white/5">
+                        <i data-lucide="inbox" stroke-width="1.5" class="w-8 h-8 text-slate-500 mx-auto"></i>
+                    </div>
+                    <h3 class="text-sm font-medium text-white mb-1">Tu bóveda está vacía</h3>
+                    <p class="text-sm text-slate-400">Comienza agregando tu primer artículo</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Reset -->
+    <div id="modal-reset" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="card rounded-xl p-8 max-w-sm mx-4">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-red-500/15 rounded-lg">
+                    <i data-lucide="alert-circle" stroke-width="1.5" class="w-5 h-5 text-red-400"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-white">Borrar Todo</h3>
+            </div>
+            <p class="text-sm text-slate-400 mb-6">¿Estás seguro? Esta acción no se puede deshacer.</p>
+            <div class="flex gap-3">
+                <button id="btn-cancel-reset" class="btn-secondary flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white">Cancelar</button>
+                <button id="btn-confirm-reset" class="btn-danger flex-1 px-4 py-2 rounded-lg text-sm font-medium">Borrar</button>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="app.js"></script>
+    <script>
+        // Initialize icons
+        lucide.createIcons();
+
+        const app = (() => {
+            const state = {
+                items: JSON.parse(localStorage.getItem('setupvault_items')) || [],
+                budget: JSON.parse(localStorage.getItem('setupvault_budget')) || 0
+            };
+
+            const save = () => {
+                localStorage.setItem('setupvault_items', JSON.stringify(state.items));
+                localStorage.setItem('setupvault_budget', JSON.stringify(state.budget));
+                render();
+            };
+
+            const addItem = (name, price, priority) => {
+                if (!name || !price || !priority) return false;
+                
+                const regex = /^[a-zA-Z0-9\s\-_]+$/;
+                if (!regex.test(name)) return false;
+                if (isNaN(price) || price <= 0) return false;
+
+                state.items.push({
+                    id: crypto.randomUUID(),
+                    name,
+                    price: parseFloat(price),
+                    priority
+                });
+                save();
+                return true;
+            };
+
+            const deleteItem = (id) => {
+                state.items = state.items.filter(item => item.id !== id);
+                save();
+            };
+
+            const setBudget = (budget) => {
+                state.budget = parseFloat(budget) || 0;
+                save();
+            };
+
+            const getTotalSpent = () => {
+                return state.items.reduce((sum, item) => sum + item.price, 0);
+            };
+
+            const render = () => {
+                const total = getTotalSpent();
+                const remaining = state.budget - total;
+                const percentage = state.budget > 0 ? (total / state.budget) * 100 : 0;
+
+                document.getElementById('total-amount').textContent = `$${total.toLocaleString('es-CL')}`;
+                document.getElementById('budget-text').textContent = state.budget > 0 ? `$${state.budget.toLocaleString('es-CL')}` : '—';
+                document.getElementById('budget-bar').style.width = Math.min(percentage, 100) + '%';
+                document.getElementById('items-count').textContent = `${state.items.length} artículo${state.items.length !== 1 ? 's' : ''}`;
+
+                const grid = document.getElementById('items-grid');
+                const empty = document.getElementById('empty-state');
+
+                grid.innerHTML = '';
+
+                if (state.items.length === 0) {
+                    empty.classList.remove('hidden');
+                } else {
+                    empty.classList.add('hidden');
+                    state.items.forEach(item => {
+                        const itemEl = document.createElement('div');
+                        itemEl.className = `item-card rounded-lg p-4 ${item.priority.toLowerCase()}`;
+                        itemEl.innerHTML = `
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex-1">
+                                    <h3 class="text-sm font-semibold text-white line-clamp-2">${item.name}</h3>
+                                    <div class="flex gap-2 mt-2">
+                                        <span class="text-xs font-medium px-2 py-1 rounded badge-${item.priority.toLowerCase()}">${item.priority}</span>
+                                    </div>
+                                </div>
+                                <button onclick="app.deleteItem('${item.id}')" class="text-slate-500 hover:text-red-400 transition p-1">
+                                    <i data-lucide="trash" stroke-width="1.5" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div class="text-lg font-bold text-white">$${item.price.toLocaleString('es-CL')}</div>
+                        `;
+                        grid.appendChild(itemEl);
+                        lucide.createIcons();
+                    });
+                }
+            };
+
+            return {
+                addItem,
+                deleteItem: (id) => { state.items = state.items.filter(item => item.id !== id); save(); },
+                setBudget,
+                getTotalSpent,
+                render,
+                state
+            };
+        })();
+
+        // Event listeners
+        document.getElementById('form-item').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('input-name').value;
+            const price = document.getElementById('input-price').value;
+            const priority = document.getElementById('input-priority').value;
+
+            if (app.addItem(name, price, priority)) {
+                document.getElementById('form-item').reset();
+                document.getElementById('input-name').focus();
+            }
+        });
+
+        document.getElementById('btn-save-budget').addEventListener('click', () => {
+            const budget = document.getElementById('input-budget').value;
+            app.setBudget(budget);
+            document.getElementById('input-budget').value = '';
+        });
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            document.getElementById('modal-reset').classList.remove('hidden');
+        });
+
+        document.getElementById('btn-cancel-reset').addEventListener('click', () => {
+            document.getElementById('modal-reset').classList.add('hidden');
+        });
+
+        document.getElementById('btn-confirm-reset').addEventListener('click', () => {
+            localStorage.clear();
+            app.state.items = [];
+            app.state.budget = 0;
+            app.render();
+            document.getElementById('modal-reset').classList.add('hidden');
+        });
+
+        document.getElementById('btn-export').addEventListener('click', () => {
+            const data = {
+                items: app.state.items,
+                budget: app.state.budget,
+                totalSpent: app.getTotalSpent(),
+                exportedAt: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `setupvault-${Date.now()}.json`;
+            a.click();
+        });
+
+        // Initial render
+        app.render();
+    </script>
 </body>
 </html>
