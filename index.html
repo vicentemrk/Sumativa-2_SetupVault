@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SetupVault - Gestor de Hardware</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- CSS y JS Propios -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-content">
+            <img src="logo.png" alt="SetupVault Logo" class="header-logo">
+            <div class="header-titles">
+                <h1>SetupVault</h1>
+                <p>Gestor Táctico de Presupuesto para Hardware</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button id="btn-export-json" class="btn-secondary" aria-label="Exportar datos a JSON">
+                <i class="ph ph-download-simple"></i> Exportar
+            </button>
+            <button id="btn-hard-reset" class="btn-danger" aria-label="Borrar todos los datos">
+                <i class="ph ph-warning"></i> Hard Reset
+            </button>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Sección de Ingreso de Artículos -->
+        <section class="panel input-section">
+            <h2>Añadir Nuevo Artículo</h2>
+            <form id="setup-form" novalidate>
+                <div class="form-group">
+                    <label for="item-name">Nombre del Artículo</label>
+                    <input type="text" id="item-name" placeholder="Ej: Teclado Mecánico 60%" required aria-required="true">
+                    <span class="error-msg" id="error-name" aria-live="polite"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="item-price">Precio Estimado (CLP)</label>
+                    <input type="number" id="item-price" placeholder="Ej: 45000" min="1" step="1" required aria-required="true">
+                    <span class="error-msg" id="error-price" aria-live="polite"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="item-priority">Prioridad de Compra</label>
+                    <select id="item-priority" required aria-required="true">
+                        <option value="" disabled selected>Selecciona una opción...</option>
+                        <option value="Urgente">Urgente (Rojo)</option>
+                        <option value="Planificada">Planificada (Azul)</option>
+                        <option value="Deseo">Deseo (Gris)</option>
+                    </select>
+                    <span class="error-msg" id="error-priority" aria-live="polite"></span>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="ph ph-plus-circle"></i> Agregar al Presupuesto
+                </button>
+            </form>
+        </section>
+
+        <!-- Sección de Resumen (Gasto Total y Presupuesto) -->
+        <section class="panel summary-section">
+            <div class="summary-grid">
+                <!-- Tarjeta Gasto Total -->
+                <div class="summary-card">
+                    <i class="ph ph-wallet"></i>
+                    <div>
+                        <h3>Gasto Total Estimado</h3>
+                        <p class="total-amount" id="total-amount">$0</p>
+                    </div>
+                </div>
+
+                <!-- Tarjeta Presupuesto Principal -->
+                <div class="summary-card budget-card">
+                    <i class="ph ph-bank"></i>
+                    <div class="budget-input-wrapper">
+                        <h3>Presupuesto Principal</h3>
+                        <div class="budget-control">
+                            <input type="number" id="main-budget-input" placeholder="Ej: 1000000" min="0">
+                            <button id="btn-save-budget" class="btn-secondary">Guardar</button>
+                        </div>
+                        <p id="budget-balance" class="budget-balance">Ingresa tu presupuesto total</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lista de Artículos (Grid 1-2-4) -->
+        <section class="items-section">
+            <h2>Mi Inventario de Setup</h2>
+            <div id="items-grid" class="items-grid">
+                <!-- Los items dinámicos aparecerán aquí -->
+            </div>
+            
+            <!-- Estado vacío (Fallback) -->
+            <div id="empty-state" class="empty-state hidden">
+                <i class="ph ph-ghost"></i>
+                <p>Tu bóveda está vacía. Añade tu primer hardware.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de Confirmación para Hard Reset (A11y) -->
+    <div id="modal-reset" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <h3 id="modal-title"><i class="ph ph-warning-circle"></i> Advertencia Crítica</h3>
+            <p>¿Estás seguro de que deseas eliminar permanentemente todos los registros? Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button id="btn-cancel-reset" class="btn-secondary">Cancelar</button>
+                <button id="btn-confirm-reset" class="btn-danger">Sí, borrar todo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
