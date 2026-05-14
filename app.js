@@ -1,465 +1,248 @@
-/**
- * SetupVault - Lógica de Negocio y Manipulación del DOM
- * Arquitectura: Módulo IIFE (Immediately Invoked Function Expression) para encapsulación.
- * Enfoque en Ciberseguridad (Prevención XSS) y rendimiento.
- */
+const app = (() => {
+    const STORAGE_KEYS = {
+        items: 'setupvault_items',
+        budget: 'setupvault_budget'
+    };
 
-(function () {
-    'use strict';
+    const elements = {};
 
-    // ==========================================
-    // 1. ESTADO DE LA APLICACIÓN (STATE)
-    // ==========================================
-    
-    // Arreglo central que almacena los artículos del setup
-    let setupItems = [];
-    let mainBudget = 0;
-    let editingId = null; // ID del artículo en edición
-    const STORAGE_KEY = 'setupVault_items';
-    const BUDGET_KEY = 'setupVault_budget';
+    const state = {
+        items: [],
+        budget: 0
+    };
 
-    // ==========================================
-    // 2. REFERENCIAS AL DOM
-    // ==========================================
-    const form = document.getElementById('setup-form');
-    const inputName = document.getElementById('item-name');
-    const inputPrice = document.getElementById('item-price');
-    const inputPriority = document.getElementById('item-priority');
-    
-    const errorName = document.getElementById('error-name');
-    const errorPrice = document.getElementById('error-price');
-    const errorPriority = document.getElementById('error-priority');
-    
-    const itemsGrid = document.getElementById('items-grid');
-    const emptyState = document.getElementById('empty-state');
-    const totalAmountEl = document.getElementById('total-amount');
-    
-    // Controles de Presupuesto
-    const inputMainBudget = document.getElementById('main-budget-input');
-    const btnSaveBudget = document.getElementById('btn-save-budget');
-    const budgetBalanceEl = document.getElementById('budget-balance');
-    
-    // Botones de acción general
-    const btnSubmit = document.querySelector('.btn-submit');
-    const btnExportJson = document.getElementById('btn-export-json');
-    const btnHardReset = document.getElementById('btn-hard-reset');
-    const modalReset = document.getElementById('modal-reset');
-    const btnCancelReset = document.getElementById('btn-cancel-reset');
-    const btnConfirmReset = document.getElementById('btn-confirm-reset');
-
-    // ==========================================
-    // 3. INICIALIZACIÓN
-    // ==========================================
-    function init() {
-        cargarDatos();
-        configurarEventos();
-        renderizarLista();
-    }
-
-    // ==========================================
-    // 4. PERSISTENCIA DE DATOS (LOCALSTORAGE)
-    // ==========================================
-    
-    /**
-     * Carga los datos desde localStorage de forma segura.
-     */
-    function cargarDatos() {
+    const loadState = () => {
         try {
-            const data = localStorage.getItem(STORAGE_KEY);
-            if (data) {
-                setupItems = JSON.parse(data);
-            }
-            
-            const budgetData = localStorage.getItem(BUDGET_KEY);
-            if (budgetData) {
-                mainBudget = parseFloat(budgetData);
-                inputMainBudget.value = mainBudget;
-            }
-        } catch (error) {
-            console.error('Error al parsear los datos locales:', error);
-            setupItems = []; // Fallback a estado limpio
-            mainBudget = 0;
+            state.items = JSON.parse(localStorage.getItem(STORAGE_KEYS.items)) || [];
+            state.budget = JSON.parse(localStorage.getItem(STORAGE_KEYS.budget)) || 0;
+        } catch {
+            state.items = [];
+            state.budget = 0;
         }
-    }
+    };
 
-    /**
-     * Guarda el estado actual en localStorage.
-     */
-    function guardarDatos() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(setupItems));
-    }
+    const saveState = () => {
+        localStorage.setItem(STORAGE_KEYS.items, JSON.stringify(state.items));
+        localStorage.setItem(STORAGE_KEYS.budget, JSON.stringify(state.budget));
+    };
 
-    // ==========================================
-    // 5. VALIDACIONES Y SEGURIDAD
-    // ==========================================
+    const formatCurrency = (value) => `$${Number(value).toLocaleString('es-CL')}`;
 
-    /**
-     * Limpia los mensajes de error visuales en el DOM.
-     */
-    function limpiarErrores() {
-        errorName.textContent = '';
-        errorPrice.textContent = '';
-        errorPriority.textContent = '';
-    }
+    const getTotalSpent = () => state.items.reduce((sum, item) => sum + item.price, 0);
 
-    /**
-     * Sanitiza el string eliminando espacios múltiples y recortando bordes.
-     * @param {string} str 
-     * @returns {string} String sanitizado
-     */
-    function sanitizarTexto(str) {
-        return str.trim().replace(/\s+/g, ' ');
-    }
+    const validateName = (name) => /^[a-zA-Z0-9\s\-_]+$/.test(name);
 
-    /**
-     * Valida los inputs del formulario usando Regex y reglas lógicas.
-     * Muestra errores en el DOM sin usar alert().
-     * @returns {boolean} true si es válido, false si hay errores.
-     */
-    function validarFormulario() {
-        limpiarErrores();
-        let esValido = true;
+    const getPriorityClass = (priority) => {
+        const normalized = priority.toLowerCase();
+        if (normalized === 'urgente') return 'urgente';
+        if (normalized === 'deseo') return 'deseo';
+        return 'planificada';
+    };
 
-        const nombre = sanitizarTexto(inputName.value);
-        const precio = parseFloat(inputPrice.value);
-        const prioridad = inputPriority.value;
+    const createItemCard = (item) => {
+        const card = document.createElement('article');
+        card.className = `item-card rounded-lg p-4 ${getPriorityClass(item.priority)}`;
 
-        // Validar Nombre: Sólo letras, números, espacios y guiones permitidos (Regex de seguridad)
-        // Evita el ingreso de caracteres extraños que podrían intentar inyección de código.
-        const regexNombre = /^[a-zA-Z0-9\s\-]+$/;
-        
-        if (nombre.length === 0) {
-            errorName.textContent = 'El nombre no puede estar vacío.';
-            esValido = false;
-        } else if (!regexNombre.test(nombre)) {
-            errorName.textContent = 'El nombre solo debe contener letras, números y guiones.';
-            esValido = false;
-        }
+        const header = document.createElement('div');
+        header.className = 'flex items-start justify-between mb-3';
 
-        // Validar Precio: Debe ser estrictamente mayor a 0 y un número válido.
-        if (isNaN(precio) || precio <= 0) {
-            errorPrice.textContent = 'El precio debe ser un número mayor a 0.';
-            esValido = false;
-        }
+        const content = document.createElement('div');
+        content.className = 'flex-1 min-w-0';
 
-        // Validar Prioridad: Debe estar seleccionada.
-        if (!prioridad) {
-            errorPriority.textContent = 'Debes seleccionar una prioridad.';
-            esValido = false;
-        }
+        const title = document.createElement('h3');
+        title.className = 'text-sm font-semibold text-white line-clamp-2';
+        title.textContent = item.name;
 
-        return esValido;
-    }
+        const badgeWrap = document.createElement('div');
+        badgeWrap.className = 'flex gap-2 mt-2';
 
-    // ==========================================
-    // 6. LÓGICA DE NEGOCIO (CRUD)
-    // ==========================================
+        const badge = document.createElement('span');
+        badge.className = `text-xs font-medium px-2 py-1 rounded badge-${getPriorityClass(item.priority)}`;
+        badge.textContent = item.priority;
 
-    /**
-     * Crea un nuevo artículo o actualiza uno existente y lo añade al estado.
-     */
-    function agregarArticulo(e) {
-        e.preventDefault(); // Evita recarga de la página
+        badgeWrap.appendChild(badge);
+        content.appendChild(title);
+        content.appendChild(badgeWrap);
 
-        if (!validarFormulario()) {
-            return; // Si no pasa la validación, aborta
-        }
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'text-slate-500 hover:text-red-400 transition p-1';
+        removeButton.setAttribute('aria-label', `Eliminar ${item.name}`);
+        removeButton.dataset.deleteId = item.id;
+        removeButton.innerHTML = '<i data-lucide="trash" stroke-width="1.5" class="w-4 h-4"></i>';
 
-        const nombreLimpio = sanitizarTexto(inputName.value);
-        const precioLimpio = parseFloat(inputPrice.value);
-        const prioridadLimpia = inputPriority.value;
+        header.appendChild(content);
+        header.appendChild(removeButton);
 
-        if (editingId) {
-            // MODO EDICIÓN
-            const index = setupItems.findIndex(item => item.id === editingId);
-            if (index !== -1) {
-                setupItems[index] = {
-                    id: editingId,
-                    nombre: nombreLimpio,
-                    precio: precioLimpio,
-                    prioridad: prioridadLimpia
-                };
-            }
-            // Restaurar estado del formulario
-            editingId = null;
-            btnSubmit.innerHTML = '<i class="ph ph-plus-circle"></i> Agregar al Presupuesto';
-            btnSubmit.style.backgroundColor = 'var(--color-planificada)';
-        } else {
-            // MODO CREACIÓN
-            const nuevoArticulo = {
-                id: crypto.randomUUID(), // ID único nativo seguro
-                nombre: nombreLimpio,
-                precio: precioLimpio,
-                prioridad: prioridadLimpia
-            };
-            setupItems.push(nuevoArticulo);
-        }
+        const price = document.createElement('div');
+        price.className = 'text-lg font-bold text-white';
+        price.textContent = formatCurrency(item.price);
 
-        guardarDatos();
-        renderizarLista();
-        
-        form.reset(); // Limpia el formulario
-        inputName.focus(); // Mejora de UX (Devuelve el foco)
-    }
+        card.appendChild(header);
+        card.appendChild(price);
 
-    /**
-     * Carga un artículo en el formulario para ser editado.
-     * @param {string} id - UUID del artículo a editar.
-     */
-    function cargarParaEdicion(id) {
-        const articulo = setupItems.find(item => item.id === id);
-        if (articulo) {
-            inputName.value = articulo.nombre;
-            inputPrice.value = articulo.precio;
-            inputPriority.value = articulo.prioridad;
-            editingId = id;
-            
-            // Cambiar la UI del botón para indicar edición
-            btnSubmit.innerHTML = '<i class="ph ph-floppy-disk"></i> Guardar Cambios';
-            btnSubmit.style.backgroundColor = 'var(--color-urgente)'; // Llama la atención sobre la edición activa
-            inputName.focus();
-        }
-    }
+        return card;
+    };
 
-    /**
-     * Elimina un artículo del arreglo buscando por su ID.
-     * @param {string} id - UUID del artículo a borrar.
-     */
-    function eliminarArticulo(id) {
-        setupItems = setupItems.filter(item => item.id !== id);
-        guardarDatos();
-        renderizarLista();
-    }
+    const render = () => {
+        const total = getTotalSpent();
+        const percentage = state.budget > 0 ? (total / state.budget) * 100 : 0;
 
-    /**
-     * Obtiene el presupuesto total sumando los precios usando .reduce()
-     * @returns {number} Suma total
-     */
-    function obtenerPresupuestoTotal() {
-        return setupItems.reduce((total, item) => total + item.precio, 0);
-    }
+        elements.totalAmount.textContent = formatCurrency(total);
+        elements.budgetText.textContent = state.budget > 0 ? formatCurrency(state.budget) : '—';
+        elements.budgetBar.style.width = `${Math.min(percentage, 100)}%`;
+        elements.itemsCount.textContent = `${state.items.length} artículo${state.items.length !== 1 ? 's' : ''}`;
 
-    /**
-     * Guarda el presupuesto principal introducido por el usuario.
-     */
-    function guardarPresupuestoPrincipal() {
-        const valor = parseFloat(inputMainBudget.value);
-        if (!isNaN(valor) && valor >= 0) {
-            mainBudget = valor;
-            localStorage.setItem(BUDGET_KEY, mainBudget.toString());
-            renderizarLista(); // Re-renderizar para actualizar el balance
-        }
-    }
+        elements.itemsGrid.replaceChildren();
 
-    /**
-     * Exporta los datos actuales a un archivo JSON de forma segura.
-     */
-    function exportarAJSON() {
-        const dataExport = {
-            presupuesto_principal: mainBudget,
-            articulos: setupItems,
-            fecha_exportacion: new Date().toISOString()
-        };
-
-        const jsonString = JSON.stringify(dataExport, null, 2);
-        const blob = new Blob([jsonString], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `SetupVault_Backup_${new Date().getTime()}.json`;
-        document.body.appendChild(a);
-        a.click();
-        
-        // Limpieza de memoria
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-
-    // ==========================================
-    // 7. MANIPULACIÓN DEL DOM (RENDERIZADO SEGURO)
-    // ==========================================
-
-    /**
-     * Renderiza la lista de elementos en el Grid.
-     * OBLIGATORIO: Uso de document.createElement y textContent para evitar vulnerabilidades XSS.
-     * Prohibido estrictamente innerHTML para datos que vienen del usuario.
-     */
-    function renderizarLista() {
-        // Limpiar contenedor seguro
-        itemsGrid.replaceChildren();
-
-        // Calcular y mostrar presupuesto
-        const total = obtenerPresupuestoTotal();
-        const formateadorCLP = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' });
-        
-        totalAmountEl.textContent = formateadorCLP.format(total);
-
-        // Actualizar balance comparativo con el presupuesto principal
-        if (mainBudget > 0) {
-            const diferencia = mainBudget - total;
-            budgetBalanceEl.className = 'budget-balance'; // Limpiar clases
-            
-            if (diferencia >= 0) {
-                budgetBalanceEl.textContent = `Restante: ${formateadorCLP.format(diferencia)}`;
-                budgetBalanceEl.classList.add('balance-positive');
-            } else {
-                budgetBalanceEl.textContent = `Excedido por: ${formateadorCLP.format(Math.abs(diferencia))}`;
-                budgetBalanceEl.classList.add('balance-negative');
-            }
-        } else {
-            budgetBalanceEl.textContent = "Ingresa tu presupuesto total";
-            budgetBalanceEl.className = 'budget-balance';
-        }
-
-        // Manejar estado vacío
-        if (setupItems.length === 0) {
-            emptyState.classList.remove('hidden');
+        if (state.items.length === 0) {
+            elements.emptyState.classList.remove('hidden');
             return;
-        } else {
-            emptyState.classList.add('hidden');
         }
 
-        // ORDENAMIENTO: Mostrar "Urgente" primero.
-        // Asignamos pesos temporales: Urgente = 1, Planificada = 2, Deseo = 3
-        const ordenPrioridad = {
-            'Urgente': 1,
-            'Planificada': 2,
-            'Deseo': 3
+        elements.emptyState.classList.add('hidden');
+        const fragment = document.createDocumentFragment();
+        state.items.forEach((item) => {
+            fragment.appendChild(createItemCard(item));
+        });
+        elements.itemsGrid.appendChild(fragment);
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    };
+
+    const addItem = (name, price, priority) => {
+        const cleanName = name.trim();
+        const parsedPrice = Number(price);
+
+        if (!cleanName || !price || !priority) return false;
+        if (!validateName(cleanName)) return false;
+        if (Number.isNaN(parsedPrice) || parsedPrice <= 0) return false;
+
+        state.items.push({
+            id: crypto.randomUUID(),
+            name: cleanName,
+            price: parsedPrice,
+            priority
+        });
+
+        saveState();
+        render();
+        return true;
+    };
+
+    const setBudget = (budget) => {
+        state.budget = Number.parseFloat(budget) || 0;
+        saveState();
+        render();
+    };
+
+    const deleteItem = (id) => {
+        state.items = state.items.filter((item) => item.id !== id);
+        saveState();
+        render();
+    };
+
+    const exportData = () => {
+        const data = {
+            items: state.items,
+            budget: state.budget,
+            totalSpent: getTotalSpent(),
+            exportedAt: new Date().toISOString()
         };
 
-        // Clonamos el array para no mutar el original en el sort
-        const itemsOrdenados = [...setupItems].sort((a, b) => {
-            return ordenPrioridad[a.prioridad] - ordenPrioridad[b.prioridad];
-        });
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `setupvault-${Date.now()}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+    };
 
-        // Creación segura de elementos del DOM
-        itemsOrdenados.forEach(item => {
-            // Contenedor principal de la tarjeta
-            const card = document.createElement('div');
-            card.classList.add('item-card');
-            card.setAttribute('data-priority', item.prioridad); // Atributo para CSS
+    const resetData = () => {
+        localStorage.removeItem(STORAGE_KEYS.items);
+        localStorage.removeItem(STORAGE_KEYS.budget);
+        state.items = [];
+        state.budget = 0;
+        render();
+        elements.modalReset.classList.add('hidden');
+    };
 
-            // Cabecera (Nombre y Badge)
-            const header = document.createElement('div');
-            header.classList.add('item-header');
+    const bindEvents = () => {
+        elements.formItem.addEventListener('submit', (event) => {
+            event.preventDefault();
 
-            const title = document.createElement('h3');
-            title.classList.add('item-name');
-            title.textContent = item.nombre; // Seguro contra XSS
+            const name = elements.inputName.value;
+            const price = elements.inputPrice.value;
+            const priority = elements.inputPriority.value;
 
-            const badge = document.createElement('span');
-            badge.classList.add('item-priority-badge', `badge-${item.prioridad.toLowerCase()}`);
-            badge.textContent = item.prioridad;
-
-            header.appendChild(title);
-            header.appendChild(badge);
-
-            // Precio
-            const priceEl = document.createElement('div');
-            priceEl.classList.add('item-price');
-            priceEl.textContent = new Intl.NumberFormat('es-CL', { 
-                style: 'currency', 
-                currency: 'CLP' 
-            }).format(item.precio);
-
-            // Contenedor de Botones (Acciones)
-            const actionsContainer = document.createElement('div');
-            actionsContainer.classList.add('item-actions');
-
-            // Botón Editar
-            const btnEdit = document.createElement('button');
-            btnEdit.classList.add('btn-edit-item');
-            btnEdit.setAttribute('aria-label', `Editar ${item.nombre}`);
-            btnEdit.setAttribute('data-id', item.id);
-            const iconEdit = document.createElement('i');
-            iconEdit.classList.add('ph', 'ph-pencil');
-            btnEdit.appendChild(iconEdit);
-
-            // Botón Eliminar
-            const btnDelete = document.createElement('button');
-            btnDelete.classList.add('btn-delete-item');
-            btnDelete.setAttribute('aria-label', `Eliminar ${item.nombre}`);
-            btnDelete.setAttribute('data-id', item.id); // Identificador para Event Delegation
-            const iconDelete = document.createElement('i');
-            iconDelete.classList.add('ph', 'ph-trash');
-            btnDelete.appendChild(iconDelete);
-
-            actionsContainer.appendChild(btnEdit);
-            actionsContainer.appendChild(btnDelete);
-
-            // Agrupando contenido
-            card.appendChild(header);
-            card.appendChild(priceEl);
-            card.appendChild(actionsContainer);
-
-            // Insertar tarjeta en el Grid
-            itemsGrid.appendChild(card);
-        });
-    }
-
-    // ==========================================
-    // 8. FUNCIONES DEL MODAL (HARD RESET)
-    // ==========================================
-
-    function abrirModal() {
-        modalReset.classList.remove('hidden');
-        modalReset.setAttribute('aria-hidden', 'false');
-    }
-
-    function cerrarModal() {
-        modalReset.classList.add('hidden');
-        modalReset.setAttribute('aria-hidden', 'true');
-    }
-
-    function ejecutarHardReset() {
-        localStorage.removeItem(STORAGE_KEY);
-        setupItems = [];
-        renderizarLista();
-        cerrarModal();
-    }
-
-    // ==========================================
-    // 9. CONFIGURACIÓN DE EVENTOS (DELEGACIÓN)
-    // ==========================================
-    function configurarEventos() {
-        // Evento de submit del formulario
-        form.addEventListener('submit', agregarArticulo);
-
-        // Delegación de Eventos para botones dentro del Grid (Eliminar y Editar)
-        itemsGrid.addEventListener('click', (e) => {
-            const btnDelete = e.target.closest('.btn-delete-item');
-            const btnEdit = e.target.closest('.btn-edit-item');
-            
-            if (btnDelete) {
-                const id = btnDelete.getAttribute('data-id');
-                eliminarArticulo(id);
-            } else if (btnEdit) {
-                const id = btnEdit.getAttribute('data-id');
-                cargarParaEdicion(id);
+            if (addItem(name, price, priority)) {
+                elements.formItem.reset();
+                elements.inputName.focus();
             }
         });
 
-        // Guardar Presupuesto Principal
-        btnSaveBudget.addEventListener('click', guardarPresupuestoPrincipal);
-
-        // Exportar a JSON
-        btnExportJson.addEventListener('click', exportarAJSON);
-
-        // Eventos del Modal Hard Reset
-        btnHardReset.addEventListener('click', abrirModal);
-        btnCancelReset.addEventListener('click', cerrarModal);
-        btnConfirmReset.addEventListener('click', ejecutarHardReset);
-
-        // Cerrar modal clickeando fuera de la caja
-        modalReset.addEventListener('click', (e) => {
-            if (e.target === modalReset) {
-                cerrarModal();
-            }
+        elements.btnSaveBudget.addEventListener('click', () => {
+            setBudget(elements.inputBudget.value);
+            elements.inputBudget.value = '';
         });
-    }
 
-    // Inicializar la aplicación cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', init);
+        elements.btnReset.addEventListener('click', () => {
+            elements.modalReset.classList.remove('hidden');
+        });
 
+        elements.btnCancelReset.addEventListener('click', () => {
+            elements.modalReset.classList.add('hidden');
+        });
+
+        elements.btnConfirmReset.addEventListener('click', resetData);
+
+        elements.btnExport.addEventListener('click', exportData);
+
+        elements.itemsGrid.addEventListener('click', (event) => {
+            const deleteButton = event.target.closest('[data-delete-id]');
+            if (!deleteButton) return;
+            deleteItem(deleteButton.dataset.deleteId);
+        });
+    };
+
+    const cacheElements = () => {
+        elements.formItem = document.getElementById('form-item');
+        elements.inputName = document.getElementById('input-name');
+        elements.inputPrice = document.getElementById('input-price');
+        elements.inputPriority = document.getElementById('input-priority');
+        elements.inputBudget = document.getElementById('input-budget');
+        elements.btnSaveBudget = document.getElementById('btn-save-budget');
+        elements.btnReset = document.getElementById('btn-reset');
+        elements.btnCancelReset = document.getElementById('btn-cancel-reset');
+        elements.btnConfirmReset = document.getElementById('btn-confirm-reset');
+        elements.btnExport = document.getElementById('btn-export');
+        elements.modalReset = document.getElementById('modal-reset');
+        elements.itemsGrid = document.getElementById('items-grid');
+        elements.emptyState = document.getElementById('empty-state');
+        elements.totalAmount = document.getElementById('total-amount');
+        elements.budgetText = document.getElementById('budget-text');
+        elements.budgetBar = document.getElementById('budget-bar');
+        elements.itemsCount = document.getElementById('items-count');
+    };
+
+    const init = () => {
+        cacheElements();
+        loadState();
+        bindEvents();
+        render();
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    };
+
+    return {
+        init
+    };
 })();
+
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+});

@@ -1,524 +1,139 @@
-/* ==========================================================================
-   Variables y Paleta de Colores (Tactical Steel)
-   ========================================================================== */
-:root {
-    /* Midnight Forest Palette */
-    --color-bg-body: hsl(160, 25%, 5%);
-    /* BG dark */
-    --color-bg-panel: hsl(160, 25%, 9%);
-    /* Panel ligeramente más claro */
-    --color-border: hsl(160, 25%, 15%);
-    /* Borde de panel */
-    --color-text-main: #e0e6ed;
-    /* Texto gris claro legible */
-    --color-text-muted: #8b95a5;
-    /* Texto secundario apagado */
-
-    /* Acentos por Prioridad */
-    --color-urgente: #ff4757;
-    /* Rojo táctico (Urgente) */
-    --color-urgente-glow: rgba(255, 71, 87, 0.2);
-    --color-planificada: hsl(155, 60%, 32%);
-    /* Accent / Planificada */
-    --color-planificada-glow: hsla(155, 60%, 32%, 0.2);
-    --color-deseo: #747d8c;
-    /* Gris neutro (Deseo) */
-
-    /* Sistema de diseño */
-    --font-primary: 'Inter', sans-serif;
-    --radius-sm: 6px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.4);
-    --shadow-glow: 0 0 15px rgba(255, 255, 255, 0.05);
-    --transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-/* ==========================================================================
-   Reset y Base
-   ========================================================================== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html,
 body {
-    font-family: var(--font-primary);
-    background-color: var(--color-bg-body);
-    color: var(--color-text-main);
-    line-height: 1.6;
-    padding-bottom: 3rem;
+    height: 100%;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #0a1f1a 0%, #0d2622 100%);
+    color: #e0e6ed;
 }
 
-h1,
-h2,
-h3 {
-    font-weight: 700;
-    letter-spacing: -0.5px;
+body {
+    min-height: 100vh;
 }
 
-/* ==========================================================================
-   Estructura Principal (Layout)
-   ========================================================================== */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 2rem 1.5rem;
-    max-width: 1200px;
-    margin: 0 auto 2rem auto;
-    border-bottom: 1px solid var(--color-border);
-}
-
-.header-content {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    flex: 1;
-}
-
-.header-logo {
-    width: 56px;
-    height: 56px;
-    object-fit: contain;
-    flex-shrink: 0;
-}
-
-.header-titles {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.header h1 {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 2rem;
-    color: #ffffff;
-    margin: 0;
-}
-
-.header p {
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-    margin: 0;
-}
-
-.header-actions {
-    display: flex;
-    gap: 0.75rem;
-    flex-shrink: 0;
-}
-
-/* ==========================================================================
-   Paneles y Formularios
-   ========================================================================== */
-.panel {
-    background-color: var(--color-bg-panel);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: var(--shadow-panel);
-}
-
-.input-section h2 {
-    margin-bottom: 1.5rem;
-    font-size: 1.3rem;
-}
-
-.form-group {
-    margin-bottom: 1.2rem;
-    display: flex;
-    flex-direction: column;
-}
-
-.form-group label {
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--color-text-muted);
-}
-
-input,
-select {
-    background-color: hsl(160, 25%, 7%);
-    border: 1px solid var(--color-border);
-    color: var(--color-text-main);
-    padding: 0.8rem 1rem;
-    border-radius: var(--radius-md);
-    font-size: 1rem;
-    font-family: var(--font-primary);
-    transition: var(--transition);
-}
-
-input:focus,
-select:focus {
-    outline: none;
-    border-color: var(--color-planificada);
-    box-shadow: 0 0 0 3px var(--color-planificada-glow);
-}
-
-.error-msg {
-    color: var(--color-urgente);
-    font-size: 0.85rem;
-    margin-top: 0.4rem;
-    min-height: 1.2em;
-    /* Evita saltos de layout cuando aparece */
-    display: block;
-}
-
-/* ==========================================================================
-   Botones
-   ========================================================================== */
-button {
-    font-family: var(--font-primary);
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    border-radius: var(--radius-md);
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.btn-submit {
-    background-color: var(--color-planificada);
-    color: #fff;
-    padding: 0.8rem 1.5rem;
-    width: 100%;
-    font-size: 1rem;
-    margin-top: 0.5rem;
-}
-
-.btn-submit:hover {
-    background-color: #167ce6;
-    box-shadow: var(--color-planificada-glow) 0 8px 24px;
-}
-
-.btn-danger {
-    background-color: rgba(255, 71, 87, 0.1);
-    color: var(--color-urgente);
-    border: 1px solid rgba(255, 71, 87, 0.3);
-    padding: 0.6rem 1rem;
-}
-
-.btn-danger:hover {
-    background-color: var(--color-urgente);
-    color: #fff;
-}
-
-.btn-secondary {
-    background-color: var(--color-border);
-    color: var(--color-text-main);
-    padding: 0.6rem 1rem;
-}
-
-.btn-secondary:hover {
-    background-color: #3b4050;
-}
-
-.btn-delete-item {
-    background: transparent;
-    color: var(--color-text-muted);
-    padding: 0.4rem;
-    border-radius: var(--radius-sm);
-}
-
-.btn-delete-item:hover {
-    color: var(--color-urgente);
-    background: rgba(255, 71, 87, 0.1);
-}
-
-/* Form responsive (stays vertical on mobile) */
-#setup-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-}
-
-/* ==========================================================================\n   Resumen (Summary)\n   ========================================================================== */\n.summary-grid {\n    display: flex;\n    flex-direction: column;\n    gap: 1.5rem;\n}\n\n.summary-card {\n    display: flex;\n    align-items: center;\n    gap: 1.5rem;
-}
-
-.summary-card i {
-    font-size: 3rem;
-    color: var(--color-text-muted);
-    background: hsl(160, 25%, 7%);
-    padding: 1rem;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-}
-
-.summary-card h3 {
-    font-size: 1rem;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.total-amount {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #ffffff;
-}
-
-/* ==========================================================================
-   Grid de Artículos (Mobile First -> Tablet -> Desktop)
-   ========================================================================== */
-.items-section h2 {
-    margin-bottom: 1.5rem;
-}
-
-/* Estado vacío */
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    border: 2px dashed var(--color-border);
-    border-radius: var(--radius-lg);
-    color: var(--color-text-muted);
-}
-
-.empty-state i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-
-.empty-state.hidden {
+.scrollbar-hidden::-webkit-scrollbar {
     display: none;
 }
 
-/* CSS Grid Dinámico */
-.items-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    /* 1 columna en móvil */
-    gap: 1.5rem;
+.scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
-/* Tarjeta individual */
-.item-card {
-    background-color: var(--color-bg-panel);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: var(--transition);
-    position: relative;
-    overflow: hidden;
-}
-
-.item-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-panel);
-}
-
-/* Borde superior según prioridad */
-.item-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-}
-
-.item-card[data-priority="Urgente"]::before {
-    background-color: var(--color-urgente);
-}
-
-.item-card[data-priority="Planificada"]::before {
-    background-color: var(--color-planificada);
-}
-
-.item-card[data-priority="Deseo"]::before {
-    background-color: var(--color-deseo);
-}
-
-/* Glow en hover para Urgente */
-.item-card[data-priority="Urgente"]:hover {
-    border-color: rgba(255, 71, 87, 0.4);
-    box-shadow: 0 10px 30px var(--color-urgente-glow);
-}
-
-.item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
-.item-name {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #fff;
-    word-break: break-word;
-    padding-right: 10px;
-}
-
-.item-priority-badge {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    font-weight: 700;
-    padding: 0.2rem 0.6rem;
-    border-radius: 100px;
-    letter-spacing: 0.5px;
-}
-
-/* Colores de las badges */
 .badge-urgente {
-    background-color: rgba(255, 71, 87, 0.15);
-    color: var(--color-urgente);
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
 }
 
 .badge-planificada {
-    background-color: hsla(155, 60%, 32%, 0.15);
-    color: var(--color-planificada);
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
 }
 
 .badge-deseo {
-    background-color: rgba(116, 125, 140, 0.15);
-    color: var(--color-deseo);
+    background: rgba(107, 114, 128, 0.15);
+    color: #9ca3af;
 }
 
-.item-price {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-text-main);
-    margin-top: auto;
+.input-field {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
 }
 
-/* ==========================================================================
-   Modal Crítico (Hard Reset)
-   ========================================================================== */
+.input-field:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    outline: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-danger {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #ef4444;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.item-card {
+    background: rgba(255, 255, 255, 0.04);
+    border-left: 3px solid #10b981;
+    transition: all 0.3s ease;
+}
+
+.item-card.urgente {
+    border-left-color: #ef4444;
+}
+
+.item-card.deseo {
+    border-left-color: #9ca3af;
+}
+
+.item-card:hover {
+    transform: translateX(4px);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.icon-wrapper {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(16, 185, 129, 0.12);
+    border-radius: 8px;
+}
+
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 1;
-    transition: var(--transition);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
 }
 
-.modal-overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-    visibility: hidden;
-}
-
-.modal-content {
-    background-color: var(--color-bg-panel);
-    border: 1px solid var(--color-border);
-    padding: 2.5rem;
-    border-radius: var(--radius-lg);
-    max-width: 450px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-    transform: translateY(0);
-    transition: var(--transition);
-}
-
-.modal-overlay.hidden .modal-content {
-    transform: translateY(20px);
-}
-
-.modal-content h3 {
-    color: var(--color-urgente);
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.modal-content p {
-    color: var(--color-text-muted);
-    margin-bottom: 2rem;
-}
-
-.modal-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-}
-
-/* ==========================================================================
-   Media Queries (Responsive 1-2-4)
-   ========================================================================== */
-@media (min-width: 640px) {
-    .header {
-        flex-wrap: wrap;
-        padding: 1.5rem;
-    }
-
+@media (max-width: 639px) {
     .header-actions {
         gap: 0.5rem;
-    }
-
-    .header-titles h1 {
-        font-size: 1.5rem;
-    }
-}
-
-@media (min-width: 768px) {
-    .items-grid {
-        grid-template-columns: repeat(2, 1fr);
-        /* 2 columnas en tablet */
-    }
-
-    .header {
-        padding: 2rem 1.5rem;
-    }
-}
-
-@media (min-width: 1280px) {
-    .items-grid {
-        grid-template-columns: repeat(4, 1fr);
-        /* 4 columnas en escritorio */
-    }
-
-    #setup-form {
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr auto;
-        gap: 1.5rem;
-        align-items: end;
-    }
-
-    .form-group {
-        margin-bottom: 0;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .form-group label {
-        margin-bottom: 0.5rem;
-    }
-
-    .btn-submit {
-        margin-top: 0;
-        height: 48px;
-        width: auto;
-        /* alinea con los inputs */
     }
 }
