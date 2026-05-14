@@ -18,7 +18,7 @@
     <div class="min-h-screen flex flex-col">
         <header class="border-b border-white/5 sticky top-0 z-50 bg-slate-950/50 backdrop-blur-xl">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,6 +36,10 @@
                             <i data-lucide="download" stroke-width="1.5" class="w-4 h-4"></i>
                             <span class="hidden sm:inline">Exportar</span>
                         </button>
+                        <button id="btn-theme-toggle" class="btn-secondary px-3 py-2 rounded-lg text-sm font-medium text-white/80 flex items-center gap-2 hover:text-white" aria-pressed="false" aria-label="Cambiar tema">
+                            <i id="theme-icon" data-lucide="sun" stroke-width="1.5" class="w-4 h-4"></i>
+                            <span id="theme-label" class="hidden sm:inline">Claro</span>
+                        </button>
                         <button id="btn-reset" class="btn-danger px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
                             <i data-lucide="trash-2" stroke-width="1.5" class="w-4 h-4"></i>
                             <span class="hidden sm:inline">Reset</span>
@@ -46,43 +50,16 @@
         </header>
 
         <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-            <section class="card rounded-xl p-6 sm:p-8 mb-8">
-                <div class="mb-6">
-                    <h2 class="text-lg font-semibold text-white tracking-tight">Nuevo Artículo</h2>
-                    <p class="text-sm text-slate-400 mt-1">Añade items a tu presupuesto</p>
+            <section class="card rounded-xl p-6 sm:p-8 mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="space-y-2">
+                    <p class="text-xs font-medium text-emerald-400 uppercase tracking-wider">Acción principal</p>
+                    <h2 class="text-lg font-semibold text-white tracking-tight">Formulario de artículos en modal</h2>
+                    <p class="text-sm text-slate-400">Abre un panel amplio para agregar o editar artículos con contexto útil al lado.</p>
                 </div>
-
-                <form id="form-item" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                        <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Nombre</label>
-                        <input id="input-name" type="text" placeholder="Ej: RTX 4060" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
-                        <p id="error-name" class="text-xs text-red-400 mt-1 hidden"></p>
-                    </div>
-
-                    <div>
-                        <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Precio (CLP)</label>
-                        <input id="input-price" type="number" placeholder="45000" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
-                        <p id="error-price" class="text-xs text-red-400 mt-1 hidden"></p>
-                    </div>
-
-                    <div>
-                        <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Prioridad</label>
-                        <select id="input-priority" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white bg-slate-900/50">
-                            <option value="">Selecciona...</option>
-                            <option value="Urgente">Urgente</option>
-                            <option value="Planificada">Planificada</option>
-                            <option value="Deseo">Deseo</option>
-                        </select>
-                        <p id="error-priority" class="text-xs text-red-400 mt-1 hidden"></p>
-                    </div>
-
-                    <div class="flex items-end">
-                        <button type="submit" class="btn-primary w-full px-4 py-2.5 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2">
-                            <i data-lucide="plus-circle" stroke-width="1.5" class="w-4 h-4"></i>
-                            Agregar
-                        </button>
-                    </div>
-                </form>
+                <button id="btn-open-modal" class="btn-primary px-5 py-3 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2">
+                    <i data-lucide="plus-circle" stroke-width="1.5" class="w-4 h-4"></i>
+                    Agregar artículo
+                </button>
             </section>
 
             <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -118,6 +95,37 @@
                 </div>
             </section>
 
+            <section class="card rounded-xl p-5 sm:p-6 mb-8 filter-panel">
+                <div class="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(180px,0.8fr)_minmax(180px,0.8fr)]">
+                    <div>
+                        <label for="input-search" class="control-label">Buscar</label>
+                        <input id="input-search" type="search" placeholder="Busca por nombre de artículo" class="filter-field w-full px-3 py-3 rounded-lg text-sm text-white placeholder-slate-500">
+                    </div>
+
+                    <div>
+                        <label for="select-priority-filter" class="control-label">Filtrar prioridad</label>
+                        <select id="select-priority-filter" class="filter-field w-full px-3 py-3 rounded-lg text-sm text-white bg-slate-900/50">
+                            <option value="all">Todas</option>
+                            <option value="Urgente">Urgente</option>
+                            <option value="Planificada">Planificada</option>
+                            <option value="Deseo">Deseo</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="select-sort" class="control-label">Ordenar por</label>
+                        <select id="select-sort" class="filter-field w-full px-3 py-3 rounded-lg text-sm text-white bg-slate-900/50">
+                            <option value="recent">Más recientes</option>
+                            <option value="nameAsc">Nombre A-Z</option>
+                            <option value="nameDesc">Nombre Z-A</option>
+                            <option value="priceAsc">Precio menor a mayor</option>
+                            <option value="priceDesc">Precio mayor a menor</option>
+                            <option value="priority">Prioridad</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
             <section>
                 <div class="mb-6">
                     <h2 class="text-lg font-semibold text-white tracking-tight">Mi Inventario</h2>
@@ -130,20 +138,109 @@
                     <div class="mb-4 p-4 rounded-lg bg-white/5">
                         <i data-lucide="inbox" stroke-width="1.5" class="w-8 h-8 text-slate-500 mx-auto"></i>
                     </div>
-                    <h3 class="text-sm font-medium text-white mb-1">Tu bóveda está vacía</h3>
-                    <p class="text-sm text-slate-400">Comienza agregando tu primer artículo</p>
+                    <h3 id="empty-state-title" class="text-sm font-medium text-white mb-1">Tu bóveda está vacía</h3>
+                    <p id="empty-state-text" class="text-sm text-slate-400">Comienza agregando tu primer artículo</p>
                 </div>
             </section>
         </main>
     </div>
 
-    <div id="modal-reset" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
-        <div class="card rounded-xl p-8 max-w-sm mx-4">
+    <div id="item-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4" aria-hidden="true" role="dialog" aria-labelledby="item-modal-title">
+        <div class="modal-shell w-full max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
+            <div class="flex items-start justify-between gap-4 px-6 sm:px-8 py-5 border-b border-white/10">
+                <div>
+                    <p class="text-xs font-medium text-emerald-400 uppercase tracking-wider">Formulario de artículo</p>
+                    <h3 id="item-modal-title" class="text-xl font-semibold text-white tracking-tight">Nuevo artículo</h3>
+                    <p id="modal-subtitle" class="text-sm text-slate-400 mt-1">Usa el mismo formulario para agregar o editar.</p>
+                </div>
+                <button id="btn-close-modal" type="button" class="modal-close" aria-label="Cerrar modal">
+                    <i data-lucide="x" stroke-width="1.5" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="grid gap-0 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.9fr)]">
+                <form id="form-item" class="p-6 sm:p-8 border-b lg:border-b-0 lg:border-r border-white/10">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="sm:col-span-2">
+                            <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Nombre</label>
+                            <input id="input-name" type="text" placeholder="Ej: RTX 4060" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
+                            <p id="error-name" class="field-error hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Precio (CLP)</label>
+                            <input id="input-price" type="number" placeholder="45000" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
+                            <p id="error-price" class="field-error hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Prioridad</label>
+                            <select id="input-priority" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white bg-slate-900/50">
+                                <option value="">Selecciona...</option>
+                                <option value="Urgente">Urgente</option>
+                                <option value="Planificada">Planificada</option>
+                                <option value="Deseo">Deseo</option>
+                            </select>
+                            <p id="error-priority" class="field-error hidden"></p>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions mt-6 flex flex-col sm:flex-row gap-3">
+                        <button id="btn-cancel-item" type="button" class="btn-secondary flex-1 px-4 py-3 rounded-lg text-sm font-medium text-white">Cancelar</button>
+                        <button type="submit" class="btn-primary flex-1 px-4 py-3 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2">
+                            <i data-lucide="save" stroke-width="1.5" class="w-4 h-4"></i>
+                            <span id="btn-submit-item-label">Agregar artículo</span>
+                        </button>
+                    </div>
+                </form>
+
+                <aside class="modal-sidebar p-6 sm:p-8 space-y-5">
+                    <section class="metric-grid grid grid-cols-2 gap-3">
+                        <div class="metric-card">
+                            <p class="metric-label">Total gastado</p>
+                            <p id="modal-summary-total" class="metric-value">$0</p>
+                        </div>
+                        <div class="metric-card">
+                            <p class="metric-label">Restante</p>
+                            <p id="modal-summary-remaining" class="metric-value">Sin presupuesto</p>
+                        </div>
+                        <div class="metric-card">
+                            <p class="metric-label">Artículos</p>
+                            <p id="modal-summary-count" class="metric-value">0 artículos</p>
+                        </div>
+                        <div id="modal-summary-percentage-wrap" class="metric-card hidden">
+                            <p class="metric-label">Uso</p>
+                            <p id="modal-summary-percentage" class="metric-value">0% usado</p>
+                            <div class="h-1.5 bg-white/5 rounded-full overflow-hidden mt-2">
+                                <div id="modal-summary-percentage-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="help-card">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i data-lucide="sparkles" stroke-width="1.5" class="w-4 h-4 text-emerald-400"></i>
+                            <h4 class="text-sm font-semibold text-white tracking-tight">Ayuda rápida</h4>
+                        </div>
+                        <ul class="help-list">
+                            <li>Nombre: texto seguro, sin símbolos raros.</li>
+                            <li>Precio: número mayor que 0.</li>
+                            <li>Prioridad: selecciona una opción obligatoria.</li>
+                            <li>Editar reutiliza este mismo formulario.</li>
+                        </ul>
+                    </section>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-reset" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4" aria-hidden="true" role="dialog" aria-labelledby="modal-reset-title">
+        <div class="card rounded-xl p-8 max-w-sm mx-4 w-full border border-white/10">
             <div class="flex items-center gap-3 mb-4">
                 <div class="p-2 bg-red-500/15 rounded-lg">
                     <i data-lucide="alert-circle" stroke-width="1.5" class="w-5 h-5 text-red-400"></i>
                 </div>
-                <h3 class="text-lg font-semibold text-white">Borrar Todo</h3>
+                <h3 id="modal-reset-title" class="text-lg font-semibold text-white">Borrar Todo</h3>
             </div>
             <p class="text-sm text-slate-400 mb-6">¿Estás seguro? Esta acción no se puede deshacer.</p>
             <div class="flex gap-3">

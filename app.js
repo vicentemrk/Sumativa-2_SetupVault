@@ -1,42 +1,203 @@
 const app = (() => {
     const STORAGE_KEYS = {
         items: 'setupvault_items',
-        budget: 'setupvault_budget'
+        budget: 'setupvault_budget',
+        theme: 'setupvault_theme'
+    };
+
+    const state = {
+        items: [],
+        budget: 0,
+        searchQuery: '',
+        priorityFilter: 'all',
+        sortBy: 'recent',
+        theme: 'dark',
+        modalMode: 'create',
+        editingId: null
     };
 
     const elements = {};
 
-    const state = {
-        items: [],
-        budget: 0
-    };
-
     const loadState = () => {
         try {
-            state.items = JSON.parse(localStorage.getItem(STORAGE_KEYS.items)) || [];
+            const storedItems = JSON.parse(localStorage.getItem(STORAGE_KEYS.items)) || [];
+            state.items = storedItems.map((item, index) => ({
+                id: item.id || crypto.randomUUID(),
+                name: sanitizeText(String(item.name || '')),
+                price: Number(item.price) || 0,
+                priority: item.priority || 'Planificada',
+                createdAt: Number(item.createdAt) || Date.now() - index
+            }));
             state.budget = JSON.parse(localStorage.getItem(STORAGE_KEYS.budget)) || 0;
+            state.theme = localStorage.getItem(STORAGE_KEYS.theme) || 'dark';
         } catch {
             state.items = [];
             state.budget = 0;
+            state.theme = 'dark';
         }
     };
 
     const saveState = () => {
         localStorage.setItem(STORAGE_KEYS.items, JSON.stringify(state.items));
         localStorage.setItem(STORAGE_KEYS.budget, JSON.stringify(state.budget));
+        localStorage.setItem(STORAGE_KEYS.theme, state.theme);
     };
 
     const formatCurrency = (value) => `$${Number(value).toLocaleString('es-CL')}`;
 
-    const getTotalSpent = () => state.items.reduce((sum, item) => sum + item.price, 0);
+    const sanitizeText = (value) => value.trim().replace(/\s+/g, ' ');
 
-    const validateName = (name) => /^[a-zA-Z0-9\s\-_]+$/.test(name);
+    const validateName = (value) => /^[a-zA-Z0-9\s\-_]+$/.test(value);
 
     const getPriorityClass = (priority) => {
         const normalized = priority.toLowerCase();
+
         if (normalized === 'urgente') return 'urgente';
         if (normalized === 'deseo') return 'deseo';
         return 'planificada';
+    };
+
+    const getTotalSpent = () => state.items.reduce((sum, item) => sum + item.price, 0);
+
+    const getBudgetRemaining = () => state.budget - getTotalSpent();
+
+    const getBudgetUsage = () => {
+        if (!state.budget) return 0;
+        return Math.min((getTotalSpent() / state.budget) * 100, 100);
+    };
+
+    const applyTheme = () => {
+        document.documentElement.dataset.theme = state.theme;
+    };
+
+    const updateThemeToggle = () => {
+        if (!elements.btnThemeToggle || !elements.themeLabel || !elements.themeIcon) return;
+
+        const isLight = state.theme === 'light';
+        elements.btnThemeToggle.setAttribute('aria-pressed', String(isLight));
+        elements.themeLabel.textContent = isLight ? 'Oscuro' : 'Claro';
+        elements.themeIcon.dataset.lucide = isLight ? 'moon' : 'sun';
+    };
+
+    const comparePriority = (leftPriority, rightPriority) => {
+        const priorityOrder = {
+            urgente: 0,
+            planificada: 1,
+            deseo: 2
+        };
+
+        const left = priorityOrder[leftPriority.toLowerCase()] ?? 99;
+        const right = priorityOrder[rightPriority.toLowerCase()] ?? 99;
+
+        return left - right;
+    };
+
+    const getVisibleItems = () => {
+        const searchQuery = sanitizeText(state.searchQuery).toLowerCase();
+
+        let filteredItems = state.items.filter((item) => {
+            const matchesQuery = !searchQuery || item.name.toLowerCase().includes(searchQuery);
+            const matchesPriority = state.priorityFilter === 'all' || item.priority === state.priorityFilter;
+            return matchesQuery && matchesPriority;
+        });
+
+        const comparators = {
+            recent: (left, right) => (right.createdAt || 0) - (left.createdAt || 0),
+            nameAsc: (left, right) => left.name.localeCompare(right.name, 'es', { sensitivity: 'base' }),
+            nameDesc: (left, right) => right.name.localeCompare(left.name, 'es', { sensitivity: 'base' }),
+            priceAsc: (left, right) => left.price - right.price,
+            priceDesc: (left, right) => right.price - left.price,
+            priority: (left, right) => {
+                const priorityDelta = comparePriority(left.priority, right.priority);
+                return priorityDelta !== 0 ? priorityDelta : left.name.localeCompare(right.name, 'es', { sensitivity: 'base' });
+            }
+        };
+
+        const comparator = comparators[state.sortBy] || comparators.recent;
+        filteredItems = [...filteredItems].sort(comparator);
+
+        return filteredItems;
+    };
+
+    const createIcon = (name, className = '') => {
+        const icon = document.createElement('i');
+        icon.dataset.lucide = name;
+        icon.setAttribute('stroke-width', '1.5');
+        icon.className = className;
+        return icon;
+    };
+
+    const clearErrors = () => {
+        ['name', 'price', 'priority'].forEach((field) => {
+            const errorElement = elements[`error${field.charAt(0).toUpperCase() + field.slice(1)}`];
+            if (!errorElement) return;
+            errorElement.textContent = '';
+            errorElement.classList.add('hidden');
+        });
+    };
+
+    const setFieldError = (field, message) => {
+        const errorElement = elements[`error${field.charAt(0).toUpperCase() + field.slice(1)}`];
+        if (!errorElement) return;
+        errorElement.textContent = message;
+        errorElement.classList.remove('hidden');
+    };
+
+    const clearItemForm = () => {
+        elements.formItem.reset();
+        clearErrors();
+        state.modalMode = 'create';
+        state.editingId = null;
+        elements.itemModalTitle.textContent = 'Nuevo artículo';
+        elements.modalSubtitle.textContent = 'Usa el mismo formulario para agregar o editar.';
+        elements.submitLabel.textContent = 'Agregar artículo';
+    };
+
+    const prefillItemForm = (item) => {
+        elements.inputName.value = item.name;
+        elements.inputPrice.value = item.price;
+        elements.inputPriority.value = item.priority;
+    };
+
+    const updateModalChrome = () => {
+        const isEdit = state.modalMode === 'edit';
+
+        elements.itemModalTitle.textContent = isEdit ? 'Editar artículo' : 'Nuevo artículo';
+        elements.modalSubtitle.textContent = isEdit
+            ? 'Ajusta los datos del artículo seleccionado.'
+            : 'Usa el mismo formulario para agregar o editar.';
+        elements.submitLabel.textContent = isEdit ? 'Guardar cambios' : 'Agregar artículo';
+    };
+
+    const renderSummary = () => {
+        const totalSpent = getTotalSpent();
+        const usage = getBudgetUsage();
+        const remaining = getBudgetRemaining();
+        const itemCount = state.items.length;
+
+        elements.totalAmount.textContent = formatCurrency(totalSpent);
+        elements.budgetText.textContent = state.budget > 0 ? formatCurrency(state.budget) : '—';
+        elements.itemsCount.textContent = `${itemCount} artículo${itemCount !== 1 ? 's' : ''}`;
+        elements.budgetBar.style.width = `${usage}%`;
+
+        if (elements.modalTotal) elements.modalTotal.textContent = formatCurrency(totalSpent);
+        if (elements.modalRemaining) {
+            elements.modalRemaining.textContent = state.budget > 0 ? formatCurrency(remaining) : 'Sin presupuesto';
+        }
+        if (elements.modalCount) {
+            elements.modalCount.textContent = `${itemCount} artículo${itemCount !== 1 ? 's' : ''}`;
+        }
+
+        if (elements.modalPercentageWrap) {
+            if (state.budget > 0) {
+                elements.modalPercentageWrap.classList.remove('hidden');
+                elements.modalPercentage.textContent = `${usage.toFixed(0)}% usado`;
+                elements.modalPercentageBar.style.width = `${usage}%`;
+            } else {
+                elements.modalPercentageWrap.classList.add('hidden');
+                elements.modalPercentageBar.style.width = '0%';
+            }
+        }
     };
 
     const createItemCard = (item) => {
@@ -44,7 +205,7 @@ const app = (() => {
         card.className = `item-card rounded-lg p-4 ${getPriorityClass(item.priority)}`;
 
         const header = document.createElement('div');
-        header.className = 'flex items-start justify-between mb-3';
+        header.className = 'flex items-start justify-between gap-3 mb-3';
 
         const content = document.createElement('div');
         content.className = 'flex-1 min-w-0';
@@ -64,15 +225,29 @@ const app = (() => {
         content.appendChild(title);
         content.appendChild(badgeWrap);
 
-        const removeButton = document.createElement('button');
-        removeButton.type = 'button';
-        removeButton.className = 'text-slate-500 hover:text-red-400 transition p-1';
-        removeButton.setAttribute('aria-label', `Eliminar ${item.name}`);
-        removeButton.dataset.deleteId = item.id;
-        removeButton.innerHTML = '<i data-lucide="trash" stroke-width="1.5" class="w-4 h-4"></i>';
+        const actions = document.createElement('div');
+        actions.className = 'flex items-center gap-1 shrink-0';
 
+        const editButton = document.createElement('button');
+        editButton.type = 'button';
+        editButton.className = 'text-slate-500 hover:text-emerald-300 transition p-1';
+        editButton.dataset.action = 'edit';
+        editButton.dataset.itemId = item.id;
+        editButton.setAttribute('aria-label', `Editar ${item.name}`);
+        editButton.appendChild(createIcon('pencil', 'w-4 h-4'));
+
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'text-slate-500 hover:text-red-400 transition p-1';
+        deleteButton.dataset.action = 'delete';
+        deleteButton.dataset.itemId = item.id;
+        deleteButton.setAttribute('aria-label', `Eliminar ${item.name}`);
+        deleteButton.appendChild(createIcon('trash-2', 'w-4 h-4'));
+
+        actions.appendChild(editButton);
+        actions.appendChild(deleteButton);
         header.appendChild(content);
-        header.appendChild(removeButton);
+        header.appendChild(actions);
 
         const price = document.createElement('div');
         price.className = 'text-lg font-bold text-white';
@@ -84,56 +259,185 @@ const app = (() => {
         return card;
     };
 
-    const render = () => {
-        const total = getTotalSpent();
-        const percentage = state.budget > 0 ? (total / state.budget) * 100 : 0;
+    const updateInventoryCount = (visibleCount) => {
+        const totalCount = state.items.length;
+        const hasFilters = state.searchQuery.trim() || state.priorityFilter !== 'all';
 
-        elements.totalAmount.textContent = formatCurrency(total);
-        elements.budgetText.textContent = state.budget > 0 ? formatCurrency(state.budget) : '—';
-        elements.budgetBar.style.width = `${Math.min(percentage, 100)}%`;
-        elements.itemsCount.textContent = `${state.items.length} artículo${state.items.length !== 1 ? 's' : ''}`;
+        if (totalCount === 0) {
+            elements.itemsCount.textContent = '0 artículos';
+            return;
+        }
 
+        if (hasFilters) {
+            elements.itemsCount.textContent = `${visibleCount} de ${totalCount} artículo${totalCount !== 1 ? 's' : ''}`;
+            return;
+        }
+
+        elements.itemsCount.textContent = `${totalCount} artículo${totalCount !== 1 ? 's' : ''}`;
+    };
+
+    const renderItems = () => {
         elements.itemsGrid.replaceChildren();
+
+        const visibleItems = getVisibleItems();
+        updateInventoryCount(visibleItems.length);
 
         if (state.items.length === 0) {
             elements.emptyState.classList.remove('hidden');
+            elements.emptyStateTitle.textContent = 'Tu bóveda está vacía';
+            elements.emptyStateText.textContent = 'Comienza agregando tu primer artículo';
+            return;
+        }
+
+        if (visibleItems.length === 0) {
+            elements.emptyState.classList.remove('hidden');
+            elements.emptyStateTitle.textContent = 'No hay resultados';
+            elements.emptyStateText.textContent = 'Prueba otro término, filtro o criterio de orden.';
             return;
         }
 
         elements.emptyState.classList.add('hidden');
+
         const fragment = document.createDocumentFragment();
-        state.items.forEach((item) => {
+        visibleItems.forEach((item) => {
             fragment.appendChild(createItemCard(item));
         });
+
         elements.itemsGrid.appendChild(fragment);
+    };
+
+    const render = () => {
+        applyTheme();
+        updateThemeToggle();
+        renderSummary();
+        renderItems();
 
         if (window.lucide) {
             lucide.createIcons();
         }
     };
 
-    const addItem = (name, price, priority) => {
-        const cleanName = name.trim();
-        const parsedPrice = Number(price);
+    const validateItemForm = () => {
+        clearErrors();
 
-        if (!cleanName || !price || !priority) return false;
-        if (!validateName(cleanName)) return false;
-        if (Number.isNaN(parsedPrice) || parsedPrice <= 0) return false;
+        const name = sanitizeText(elements.inputName.value);
+        const price = Number(elements.inputPrice.value);
+        const priority = elements.inputPriority.value;
 
-        state.items.push({
-            id: crypto.randomUUID(),
-            name: cleanName,
-            price: parsedPrice,
-            priority
-        });
+        let valid = true;
+
+        if (!name) {
+            setFieldError('name', 'El nombre es obligatorio.');
+            valid = false;
+        } else if (!validateName(name)) {
+            setFieldError('name', 'Solo letras, números, espacios y guiones.');
+            valid = false;
+        }
+
+        if (!elements.inputPrice.value || Number.isNaN(price) || price <= 0) {
+            setFieldError('price', 'El precio debe ser un número mayor a 0.');
+            valid = false;
+        }
+
+        if (!priority) {
+            setFieldError('priority', 'Debes seleccionar una prioridad.');
+            valid = false;
+        }
+
+        return {
+            valid,
+            values: {
+                name,
+                price,
+                priority
+            }
+        };
+    };
+
+    const getItemById = (id) => state.items.find((item) => item.id === id);
+
+    const openItemModal = (mode = 'create', itemId = null) => {
+        state.modalMode = mode;
+        state.editingId = itemId;
+
+        if (mode === 'edit') {
+            const item = getItemById(itemId);
+            if (!item) return;
+            clearItemForm();
+            state.modalMode = 'edit';
+            state.editingId = itemId;
+            prefillItemForm(item);
+        } else {
+            clearItemForm();
+        }
+
+        updateModalChrome();
+        elements.itemModal.classList.remove('hidden');
+        elements.itemModal.setAttribute('aria-hidden', 'false');
+        elements.inputName.focus();
+        renderSummary();
+    };
+
+    const closeItemModal = () => {
+        elements.itemModal.classList.add('hidden');
+        elements.itemModal.setAttribute('aria-hidden', 'true');
+        clearItemForm();
+    };
+
+    const saveItemFromModal = () => {
+        const validation = validateItemForm();
+        if (!validation.valid) return;
+
+        const { name, price, priority } = validation.values;
+
+        if (state.modalMode === 'edit' && state.editingId) {
+            const index = state.items.findIndex((item) => item.id === state.editingId);
+            if (index !== -1) {
+                state.items[index] = {
+                    ...state.items[index],
+                    name,
+                    price,
+                    priority
+                };
+            }
+        } else {
+            state.items.push({
+                id: crypto.randomUUID(),
+                name,
+                price,
+                priority,
+                createdAt: Date.now()
+            });
+        }
 
         saveState();
         render();
-        return true;
+        closeItemModal();
     };
 
-    const setBudget = (budget) => {
-        state.budget = Number.parseFloat(budget) || 0;
+    const setBudget = (budgetValue) => {
+        state.budget = Number.parseFloat(budgetValue) || 0;
+        saveState();
+        render();
+    };
+
+    const setSearchQuery = (value) => {
+        state.searchQuery = value;
+        renderItems();
+    };
+
+    const setPriorityFilter = (value) => {
+        state.priorityFilter = value;
+        renderItems();
+    };
+
+    const setSortBy = (value) => {
+        state.sortBy = value;
+        renderItems();
+    };
+
+    const toggleTheme = () => {
+        state.theme = state.theme === 'light' ? 'dark' : 'light';
         saveState();
         render();
     };
@@ -166,21 +470,44 @@ const app = (() => {
         localStorage.removeItem(STORAGE_KEYS.budget);
         state.items = [];
         state.budget = 0;
+        saveState();
         render();
         elements.modalReset.classList.add('hidden');
     };
 
     const bindEvents = () => {
+        elements.btnOpenModal.addEventListener('click', () => openItemModal('create'));
+        elements.btnThemeToggle.addEventListener('click', toggleTheme);
+
+        elements.inputSearch.addEventListener('input', (event) => {
+            setSearchQuery(event.target.value);
+        });
+
+        elements.selectPriorityFilter.addEventListener('change', (event) => {
+            setPriorityFilter(event.target.value);
+        });
+
+        elements.selectSort.addEventListener('change', (event) => {
+            setSortBy(event.target.value);
+        });
+
         elements.formItem.addEventListener('submit', (event) => {
             event.preventDefault();
+            saveItemFromModal();
+        });
 
-            const name = elements.inputName.value;
-            const price = elements.inputPrice.value;
-            const priority = elements.inputPriority.value;
+        elements.btnCancelItem.addEventListener('click', closeItemModal);
+        elements.btnCloseModal.addEventListener('click', closeItemModal);
 
-            if (addItem(name, price, priority)) {
-                elements.formItem.reset();
-                elements.inputName.focus();
+        elements.itemModal.addEventListener('click', (event) => {
+            if (event.target === elements.itemModal) {
+                closeItemModal();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !elements.itemModal.classList.contains('hidden')) {
+                closeItemModal();
             }
         });
 
@@ -202,37 +529,77 @@ const app = (() => {
         elements.btnExport.addEventListener('click', exportData);
 
         elements.itemsGrid.addEventListener('click', (event) => {
-            const deleteButton = event.target.closest('[data-delete-id]');
-            if (!deleteButton) return;
-            deleteItem(deleteButton.dataset.deleteId);
+            const actionButton = event.target.closest('[data-action]');
+            if (!actionButton) return;
+
+            const { action, itemId } = actionButton.dataset;
+
+            if (action === 'delete') {
+                deleteItem(itemId);
+            }
+
+            if (action === 'edit') {
+                openItemModal('edit', itemId);
+            }
         });
     };
 
     const cacheElements = () => {
+        elements.btnOpenModal = document.getElementById('btn-open-modal');
+        elements.btnExport = document.getElementById('btn-export');
+        elements.btnReset = document.getElementById('btn-reset');
+        elements.btnSaveBudget = document.getElementById('btn-save-budget');
+        elements.btnCancelReset = document.getElementById('btn-cancel-reset');
+        elements.btnConfirmReset = document.getElementById('btn-confirm-reset');
+        elements.modalReset = document.getElementById('modal-reset');
+
+        elements.itemModal = document.getElementById('item-modal');
+        elements.btnCloseModal = document.getElementById('btn-close-modal');
+        elements.btnCancelItem = document.getElementById('btn-cancel-item');
         elements.formItem = document.getElementById('form-item');
         elements.inputName = document.getElementById('input-name');
         elements.inputPrice = document.getElementById('input-price');
         elements.inputPriority = document.getElementById('input-priority');
-        elements.inputBudget = document.getElementById('input-budget');
-        elements.btnSaveBudget = document.getElementById('btn-save-budget');
-        elements.btnReset = document.getElementById('btn-reset');
-        elements.btnCancelReset = document.getElementById('btn-cancel-reset');
-        elements.btnConfirmReset = document.getElementById('btn-confirm-reset');
-        elements.btnExport = document.getElementById('btn-export');
-        elements.modalReset = document.getElementById('modal-reset');
+        elements.submitLabel = document.getElementById('btn-submit-item-label');
+        elements.itemModalTitle = document.getElementById('item-modal-title');
+        elements.modalSubtitle = document.getElementById('modal-subtitle');
+
+        elements.errorName = document.getElementById('error-name');
+        elements.errorPrice = document.getElementById('error-price');
+        elements.errorPriority = document.getElementById('error-priority');
+
+        elements.modalTotal = document.getElementById('modal-summary-total');
+        elements.modalRemaining = document.getElementById('modal-summary-remaining');
+        elements.modalCount = document.getElementById('modal-summary-count');
+        elements.modalPercentageWrap = document.getElementById('modal-summary-percentage-wrap');
+        elements.modalPercentage = document.getElementById('modal-summary-percentage');
+        elements.modalPercentageBar = document.getElementById('modal-summary-percentage-bar');
+
         elements.itemsGrid = document.getElementById('items-grid');
         elements.emptyState = document.getElementById('empty-state');
+        elements.emptyStateTitle = document.getElementById('empty-state-title');
+        elements.emptyStateText = document.getElementById('empty-state-text');
         elements.totalAmount = document.getElementById('total-amount');
         elements.budgetText = document.getElementById('budget-text');
         elements.budgetBar = document.getElementById('budget-bar');
         elements.itemsCount = document.getElementById('items-count');
+
+        elements.btnThemeToggle = document.getElementById('btn-theme-toggle');
+        elements.themeLabel = document.getElementById('theme-label');
+        elements.themeIcon = document.getElementById('theme-icon');
+        elements.inputSearch = document.getElementById('input-search');
+        elements.selectPriorityFilter = document.getElementById('select-priority-filter');
+        elements.selectSort = document.getElementById('select-sort');
     };
 
     const init = () => {
         cacheElements();
         loadState();
+        applyTheme();
         bindEvents();
         render();
+        updateModalChrome();
+
         if (window.lucide) {
             lucide.createIcons();
         }
