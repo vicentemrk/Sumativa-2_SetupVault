@@ -23,22 +23,79 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div class="flex items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="#10b981" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 logo-setupvault">
-                                <g stroke-width="2">
-                                    <path d="M5 6 L16 24 L27 6" />
-                                    <path d="M10 6 L16 16 L22 6" />
-                                    <path d="M5 14 L12 14 L16 20 L20 14 L27 14" />
-                                    <path d="M9 22 L16 28 L23 22" />
+                        <a href="/" class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-8 h-8 text-emerald-500 logo-setupvault transition-all duration-300">
+                                <!-- Glowing Hexagon Background Pattern -->
+                                <g opacity="0.15">
+                                    <path d="M50 5 L85 25 L85 75 L50 95 L15 75 L15 25 Z" />
+                                    <path d="M50 15 L76 30 L76 70 L50 85 L24 70 L24 30 Z" />
+                                    <path d="M50 25 L67 35 L67 65 L50 75 L33 65 L33 35 Z" />
                                 </g>
-                                <circle cx="5" cy="6" r="1.5" fill="#10b981" stroke="none" />
-                                <circle cx="27" cy="6" r="1.5" fill="#10b981" stroke="none" />
-                                <circle cx="5" cy="14" r="1.5" fill="#10b981" stroke="none" />
-                                <circle cx="27" cy="14" r="1.5" fill="#10b981" stroke="none" />
-                                <circle cx="16" cy="28" r="1.5" fill="#10b981" stroke="none" />
-                                <circle cx="16" cy="16" r="1.5" fill="#10b981" stroke="none" />
+                                
+                                <g transform="translate(50, 50)">
+                                    <defs>
+                                        <circle id="node" cx="0" cy="0" r="2.5" fill="currentColor" stroke="none" />
+                                        <circle id="small-node" cx="0" cy="0" r="1.5" fill="currentColor" stroke="none" />
+                                        <polygon id="hex" points="0,-6 5.2,-3 5.2,3 0,6 -5.2,3 -5.2,-3" />
+                                    </defs>
+                                    
+                                    <!-- Right side -->
+                                    <g id="circuit-right">
+                                        <!-- V-cores -->
+                                        <path d="M 0 30 L 25 5 L 25 -15 L 0 -40" />
+                                        <path d="M 0 20 L 15 5 L 15 -10 L 0 -25" />
+                                        <path d="M 0 10 L 5 5 L 5 -5 L 0 -10" />
+
+                                        <!-- Horizontal routing -->
+                                        <path d="M 15 -10 L 25 -10 L 32 -17 L 32 -25" />
+                                        <path d="M 25 5 L 35 5 L 42 12 L 42 20" />
+                                        
+                                        <!-- Outer traces -->
+                                        <path d="M 0 45 L 35 10 L 35 -20 L 15 -40 L 0 -40" />
+                                        
+                                        <!-- Complex routing -->
+                                        <path d="M 5 5 L 10 10 L 10 20" />
+                                        <path d="M 15 25 L 20 20 L 20 10" />
+                                        <path d="M 35 10 L 40 5 L 40 -5 L 30 -15" />
+                                        <path d="M 25 -25 L 20 -30 L 10 -30 L 5 -25" />
+                                        
+                                        <!-- Nodes -->
+                                        <use href="#node" x="25" y="-15" />
+                                        <use href="#node" x="15" y="-10" />
+                                        <use href="#node" x="5" y="-5" />
+                                        <use href="#node" x="25" y="5" />
+                                        <use href="#node" x="15" y="5" />
+                                        <use href="#node" x="5" y="5" />
+                                        
+                                        <use href="#node" x="32" y="-25" />
+                                        <use href="#node" x="42" y="20" />
+                                        <use href="#node" x="35" y="-20" />
+                                        
+                                        <use href="#small-node" x="10" y="20" />
+                                        <use href="#small-node" x="20" y="10" />
+                                        <use href="#small-node" x="30" y="-15" />
+                                        <use href="#small-node" x="5" y="-25" />
+                                        
+                                        <!-- Tech Hexagons on edges -->
+                                        <use href="#hex" x="32" y="-25" />
+                                        <use href="#hex" x="42" y="20" />
+                                        <use href="#hex" x="20" y="-30" />
+                                    </g>
+                                    
+                                    <!-- Left side (Mirrored) -->
+                                    <use href="#circuit-right" transform="scale(-1, 1)" />
+                                    
+                                    <!-- Spine Nodes -->
+                                    <use href="#node" x="0" y="-40" />
+                                    <use href="#node" x="0" y="-25" />
+                                    <use href="#node" x="0" y="-10" />
+                                    <use href="#node" x="0" y="10" />
+                                    <use href="#node" x="0" y="20" />
+                                    <use href="#node" x="0" y="30" />
+                                    <use href="#node" x="0" y="45" />
+                                </g>
                             </svg>
-                        </div>
+                        </a>
                         <div>
                             <h1 class="text-xl font-semibold text-white tracking-tight">SetupVault</h1>
                             <p class="text-xs text-slate-400">Gestor de Hardware</p>
@@ -73,7 +130,7 @@
                     <h2 class="text-lg font-semibold text-white tracking-tight">Formulario de artículos en modal</h2>
                     <p class="text-sm text-slate-400">Abre un panel amplio para agregar o editar artículos con contexto útil al lado.</p>
                 </div>
-                <button id="btn-open-modal" class="btn-primary px-5 py-3 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2">
+                <button id="btn-open-modal" class="btn-primary px-5 py-3 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2" aria-haspopup="dialog" aria-expanded="false">
                     <i data-lucide="plus-circle" stroke-width="1.5" class="w-4 h-4"></i>
                     Agregar artículo
                 </button>
@@ -151,7 +208,7 @@
                     <p class="text-sm text-slate-400 mt-1" id="items-count">0 artículos</p>
                 </div>
 
-                <div id="items-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                <div id="items-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
 
                 <div id="empty-state" class="col-span-full flex flex-col items-center justify-center py-16 text-center">
                     <div class="mb-4 p-4 rounded-lg bg-white/5">
@@ -169,7 +226,7 @@
          ========================================== -->
          
     <!-- Modal de Interacción: Creación/Edición de artículos -->
-    <div id="item-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4" aria-hidden="true" role="dialog" aria-labelledby="item-modal-title">
+    <div id="item-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
         <div class="modal-shell w-full max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
             <div class="flex items-start justify-between gap-4 px-6 sm:px-8 py-5 border-b border-white/10">
                 <div>
@@ -186,19 +243,19 @@
                 <form id="form-item" class="p-6 sm:p-8 border-b lg:border-b-0 lg:border-r border-white/10">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="sm:col-span-2">
-                            <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Nombre</label>
+                            <label for="input-name" class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Nombre</label>
                             <input id="input-name" type="text" placeholder="Ej: RTX 4060" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
                             <p id="error-name" class="field-error hidden"></p>
                         </div>
 
                         <div>
-                            <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Precio (CLP)</label>
+                            <label for="input-price" class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Precio (CLP)</label>
                             <input id="input-price" type="number" placeholder="45000" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
                             <p id="error-price" class="field-error hidden"></p>
                         </div>
 
                         <div>
-                            <label class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Prioridad</label>
+                            <label for="input-priority" class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Prioridad</label>
                             <select id="input-priority" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white bg-slate-900/50">
                                 <option value="">Selecciona...</option>
                                 <option value="Urgente">Urgente</option>
@@ -259,7 +316,7 @@
     </div>
 
     <!-- Modal Crítico: Confirmación de borrado global (Hard Reset) -->
-    <div id="modal-reset" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4" aria-hidden="true" role="dialog" aria-labelledby="modal-reset-title">
+    <div id="modal-reset" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-reset-title">
         <div class="card rounded-xl p-8 max-w-sm mx-4 w-full border border-white/10">
             <div class="flex items-center gap-3 mb-4">
                 <div class="p-2 bg-red-500/15 rounded-lg">

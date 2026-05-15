@@ -10,7 +10,7 @@ const app = (() => {
         budget: 0,
         searchQuery: '',
         priorityFilter: 'all',
-        sortBy: 'recent',
+        sortBy: 'priority',
         theme: 'dark',
         modalMode: 'create',
         editingId: null
@@ -19,10 +19,10 @@ const app = (() => {
     const elements = {};
 
     /**
-     * Carga defensiva del estado con normalización de esquema.
-     * Implementa validación y sanitización 'on-read' para mitigar la inyección 
-     * de datos corruptos desde localStorage. Garantiza retrocompatibilidad y
-     * coerciones de tipo seguras para mantener la integridad del estado.
+     * [Asistencia IA] - Carga defensiva del estado y validación de esquema
+     * Se solicitó a la IA sugerir la estructura óptima para organizar la información (UUIDs, coerciones).
+     * Razonamiento final: Implementar validación 'on-read' mitiga la inyección de datos corruptos 
+     * desde localStorage, garantizando la integridad de los objetos del arreglo.
      */
     const loadState = () => {
         try {
@@ -57,16 +57,18 @@ const app = (() => {
     const formatCurrency = (value) => `$${Number(value).toLocaleString('es-CL')}`;
 
     /**
-     * Sanitiza el input del usuario eliminando espacios múltiples y normalizando la cadena.
-     * Componente crítico de la estrategia de defensa contra inyecciones cuando
-     * se combina con métodos de inserción segura en el DOM (textContent).
+     * [Asistencia IA] - Sanitización de Input
+     * Se utilizó asistencia de IA para identificar posibles vulnerabilidades XSS en el input del usuario.
+     * Razonamiento final: Eliminar espacios extra y recortar la cadena es un paso previo
+     * crítico antes de la inserción DOM para mantener la limpieza estructural.
      */
     const sanitizeText = (value) => value.trim().replace(/\s+/g, ' ');
 
     /**
-     * Valida que el string contenga exclusivamente caracteres alfanuméricos y separadores seguros.
-     * Patrón Regex: /^[a-zA-Z0-9\s\-_]+$/
-     * Actúa como barrera primaria contra la inyección de caracteres especiales o payloads maliciosos.
+     * [Asistencia IA] - Generación de Expresión Regular
+     * Se empleó IA generativa para construir la expresión regular de validación del nombre.
+     * Razonamiento final: El patrón /^[a-zA-Z0-9\s\-_]+$/ asegura que solo se ingresen caracteres
+     * alfanuméricos seguros, actuando como primera barrera contra la inyección de código.
      */
     const validateName = (value) => /^[a-zA-Z0-9\s\-_]+$/.test(value);
 
@@ -241,14 +243,16 @@ const app = (() => {
     };
 
     /**
-     * Construcción programática segura del DOM.
-     * Prohíbe explícitamente el uso de innerHTML/insertAdjacentHTML para evitar vulnerabilidades XSS.
-     * Todo el contenido dinámico se inyecta mediante textContent y setAttribute, asegurando
-     * que el motor de renderizado lo procese de forma aislada como texto plano o metadatos.
+     * [Asistencia IA] - Manipulación Segura del DOM y Refactorización
+     * Se requirió a la IA refactorizar la lógica de inserción para cumplir buenas prácticas de seguridad.
+     * Razonamiento final: Se prohíbe explícitamente innerHTML. Usar document.createElement, 
+     * textContent y setAttribute garantiza que el navegador procese los datos como texto plano,
+     * neutralizando cualquier ataque XSS proveniente del formulario.
      */
-    const createItemCard = (item) => {
+    const createItemCard = (item, index = 0) => {
         const card = document.createElement('article');
-        card.className = `item-card rounded-lg p-4 ${getPriorityClass(item.priority)}`;
+        card.className = `item-card card rounded-xl p-5 ${getPriorityClass(item.priority)}`;
+        card.style.animationDelay = `${index * 0.05}s`;
 
         const header = document.createElement('div');
         header.className = 'flex items-start justify-between gap-3 mb-3';
@@ -348,8 +352,8 @@ const app = (() => {
         elements.emptyState.classList.add('hidden');
 
         const fragment = document.createDocumentFragment();
-        visibleItems.forEach((item) => {
-            fragment.appendChild(createItemCard(item));
+        visibleItems.forEach((item, index) => {
+            fragment.appendChild(createItemCard(item, index));
         });
 
         elements.itemsGrid.appendChild(fragment);
@@ -367,10 +371,10 @@ const app = (() => {
     };
 
     /**
-     * Pipeline de validación estructurada y multicapa (tipo, formato y reglas de negocio).
-     * Sigue una filosofía "fail-fast" acumulativa: evalúa todas las reglas para 
-     * proporcionar un feedback exhaustivo en la UI en una sola pasada.
-     * Desacopla la validación retornando un DTO estandarizado { valid, values }.
+     * [Asistencia IA] - Módulo de Validación de Formularios
+     * Se utilizó la IA para refactorizar este bloque en una estructura de validación completa (DTO).
+     * Razonamiento final: Una filosofía "fail-fast" evaluando semántica (vacio), regex, y matemática (precio > 0)
+     * permite manejar errores claros en el DOM sin vulnerabilidades.
      */
     const validateItemForm = () => {
         clearErrors();
@@ -654,6 +658,10 @@ const app = (() => {
         loadState();
         applyTheme();
         bindEvents();
+        
+        // Sync UI with initial state
+        elements.selectSort.value = state.sortBy;
+        
         render();
         updateModalChrome();
 
