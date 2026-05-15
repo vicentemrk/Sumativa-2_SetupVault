@@ -50,6 +50,29 @@ El proyecto requería alcanzar un estándar de accesibilidad internacional y una
 - **WCAG & ARIA:** Se añadieron atributos como `aria-label`, `aria-hidden` y `role="dialog"` para que los lectores de pantalla puedan interactuar correctamente con modales e iconos de acción.
 - **Design Spells:** Para dar sensación "Premium", se separó el footer con un divisor visual claro (repositorio vs perfil) y se introdujeron animaciones escalonadas (`staggered fade-in-up`) en las cards de la bóveda manipulando el `animationDelay` a través del índice del bucle en JavaScript.
 
+## 5. Depuración y Fixes Visuales (Quality Assurance)
+
+Durante la etapa final de revisión, se detectaron pequeños "glitches" visuales y enlaces rotos que no correspondían con el estándar de calidad esperado.
+
+**Prompts utilizados:**
+> *"No aparece correctamente [el footer], por otro lado al yo clickear en el logo me envia a un link que no sirve"*
+> *"Quiero borrar esa parte verrde"*
+
+**Mejora Aplicada:**
+- **Corrección de Enlaces:** El logo redirigía erróneamente a la raíz local (`/`), causando errores de navegación. La IA corrigió el enlace asegurándose de apuntar correctamente al perfil de GitHub con la directiva de seguridad `noopener noreferrer` y `target="_blank"`.
+- **Ajustes de Renderizado (El glitch verde):** Existía un conflicto de especificidad CSS en donde el `body` tenía un degradado verde oscuro hardcodeado en `styles.css` que colisionaba con los fondos fluidos de Tailwind. La IA analizó el DOM, detectó la superposición y eliminó esta regla redundante en el CSS puro, permitiendo que las clases de Tailwind tomaran el control total. Además, reestructuró la posición del Footer eliminando el `mt-auto` problemático y aplicando un fondo `backdrop-blur`.
+
+## 6. Gestión de Temas y Adaptabilidad
+
+La aplicación ofrece un sistema de "Dark/Light Mode" que debe ser coherente y persistente para una experiencia de usuario profesional.
+
+**Prompt utilizado:**
+> *"El modo light mode esta totalmente correcto?"*
+
+**Mejora Aplicada:**
+- **Auditoría de Contraste:** La IA verificó los tokens de color (`--bg-primary`, `--text-main`, etc.) definidos en `styles.css` para garantizar que, al alternar a la versión clara, el texto mantuviera la legibilidad (Ratio de contraste > 4.5:1) según la normativa WCAG.
+- **Persistencia de Estado:** Se refinó la lógica en `app.js` para que la elección del tema se guarde en `localStorage`. Esto evita el "destello" de luz al recargar la página y asegura que la aplicación respete la configuración previa del usuario de forma perpetua.
+
 ---
 **Conclusión:**
 El uso de la IA en este proyecto elevó la base de código de un nivel inicial/intermedio a un **nivel de producción (Enterprise-grade)**, priorizando en todo momento la sanitización, inmutabilidad y la manipulación segura del árbol DOM.
