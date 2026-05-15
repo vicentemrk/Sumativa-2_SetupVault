@@ -15,8 +15,6 @@ html,
 body {
     height: 100%;
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #0a1f1a 0%, #0d2622 100%);
-    color: #e0e6ed;
 }
 
 html[data-theme="light"],
