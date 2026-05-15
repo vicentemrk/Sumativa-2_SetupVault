@@ -1,4 +1,18 @@
 <!DOCTYPE html>
+<!--
+    SetupVault - HTML shell
+
+    Notes (senior developer):
+    - Semantic structure: header, main and sections to improve accessibility and
+        make testing predictable.
+    - The UI is intentionally split: controls (search/filter/sort) live above the
+        inventory grid so the render logic can operate on a single source of truth
+        (the `state` object in `app.js`).
+    - Modal markup is present in the document but hidden by default; the modal is
+        toggled purely via class changes to avoid reflow surprises.
+    - Keep this file minimal: visual rules and interactive behavior are handled
+        in `styles.css` and `app.js` respectively to preserve separation of concerns.
+-->
 <html lang="es">
 <head>
     <meta charset="UTF-8">

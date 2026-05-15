@@ -19,10 +19,14 @@ const app = (() => {
     const elements = {};
 
     /**
-     * [Asistencia IA] - Carga defensiva del estado y validación de esquema
-     * Se solicitó a la IA sugerir la estructura óptima para organizar la información (UUIDs, coerciones).
-     * Razonamiento final: Implementar validación 'on-read' mitiga la inyección de datos corruptos 
-     * desde localStorage, garantizando la integridad de los objetos del arreglo.
+     * Load persisted state and normalize incoming records.
+     *
+     * Implementation notes (senior dev):
+     * - Do not trust data from localStorage: parse defensively and coerce types.
+     * - Ensure every item has a stable identifier (`id`) and a numeric `createdAt` to
+     *   preserve chronological ordering across versions of the app.
+     * - Sanitize textual fields at read-time so downstream rendering can assume a
+     *   consistent, safe shape and avoid duplicated sanitization logic.
      */
     const loadState = () => {
         try {
@@ -57,28 +61,25 @@ const app = (() => {
     const formatCurrency = (value) => `$${Number(value).toLocaleString('es-CL')}`;
 
     /**
-     * [Asistencia IA] - Sanitización de Input
-     * Se utilizó asistencia de IA para identificar posibles vulnerabilidades XSS en el input del usuario.
-     * Razonamiento final: Eliminar espacios extra y recortar la cadena es un paso previo
-     * crítico antes de la inserción DOM para mantener la limpieza estructural.
+     * Normalize and sanitize free-form text input.
+     *
+     * Rationale:
+     * - Trim leading/trailing whitespace and collapse repeated spaces to a single
+     *   space to keep values consistent and prevent accidental formatting issues.
+     * - Keep this function small and deterministic so it can be unit-tested easily.
      */
     const sanitizeText = (value) => value.trim().replace(/\s+/g, ' ');
 
     /**
-     * [Asistencia IA] - Generación de Expresión Regular
-     * Se empleó IA generativa para construir la expresión regular de validación del nombre.
-     * Razonamiento final: El patrón /^[a-zA-Z0-9\s\-_]+$/ asegura que solo se ingresen caracteres
-     * alfanuméricos seguros, actuando como primera barrera contra la inyección de código.
+     * Validate an item name. Accepts letters (including common accented chars),
+     * numbers, spaces, dashes and underscores.
+     *
+     * Notes:
+     * - This is an application-level constraint to keep names human-friendly and
+     *   predictable. It is not a substitute for escaping or using `textContent`
+     *   when rendering values to the DOM.
      */
     const validateName = (value) => /^[a-zA-Z0-9\s\-_áéíóúÁÉÍÓÚñÑ]+$/.test(value);
-
-    const getPriorityClass = (priority) => {
-        const normalized = priority.toLowerCase();
-
-        if (normalized === 'urgente') return 'urgente';
-        if (normalized === 'deseo') return 'deseo';
-        return 'planificada';
-    };
 
     /**
      * Función pura para el cálculo del total gastado.
@@ -243,11 +244,13 @@ const app = (() => {
     };
 
     /**
-     * [Asistencia IA] - Manipulación Segura del DOM y Refactorización
-     * Se requirió a la IA refactorizar la lógica de inserción para cumplir buenas prácticas de seguridad.
-     * Razonamiento final: Se prohíbe explícitamente innerHTML. Usar document.createElement, 
-     * textContent y setAttribute garantiza que el navegador procese los datos como texto plano,
-     * neutralizando cualquier ataque XSS proveniente del formulario.
+     * Create a DOM node for an inventory item using safe DOM APIs.
+     *
+     * Implementation intent (senior dev):
+     * - Construct nodes with `createElement` and set textual content via
+     *   `textContent` to avoid HTML parsing and XSS risks.
+     * - Keep node construction local to this function so testing and
+     *   visual updates are predictable and side-effect free (except DOM append).
      */
     const createItemCard = (item, index = 0) => {
         const card = document.createElement('article');
@@ -262,7 +265,7 @@ const app = (() => {
 
         const title = document.createElement('h3');
         title.className = 'text-sm font-semibold text-white line-clamp-2';
-        // Inyección segura: textContent previene la ejecución de nodos DOM maliciosos
+        // Set text content explicitly to avoid interpreting user input as HTML.
         title.textContent = item.name;
 
         const badgeWrap = document.createElement('div');
@@ -282,7 +285,8 @@ const app = (() => {
         const editButton = document.createElement('button');
         editButton.type = 'button';
         editButton.className = 'text-slate-500 hover:text-emerald-300 transition p-1';
-        // Uso estricto del API dataset para el almacenamiento seguro de referencias de estado
+        // Store metadata using the dataset API; this keeps IDs and actions separate
+        // from displayed content and is safe for later event delegation.
         editButton.dataset.action = 'edit';
         editButton.dataset.itemId = item.id;
         // aria-label: Concatenación segura porque textContent es sanitizado en loadState
@@ -371,10 +375,14 @@ const app = (() => {
     };
 
     /**
-     * [Asistencia IA] - Módulo de Validación de Formularios
-     * Se utilizó la IA para refactorizar este bloque en una estructura de validación completa (DTO).
-     * Razonamiento final: Una filosofía "fail-fast" evaluando semántica (vacio), regex, y matemática (precio > 0)
-     * permite manejar errores claros en el DOM sin vulnerabilidades.
+     * Validate the item form and return a structured result.
+     *
+     * Strategy:
+     * - Sanitize and coerce values first.
+     * - Apply domain rules (required fields, numeric ranges, regex constraints).
+     * - Provide field-level error messages to the caller to display in the UI.
+     *
+     * Returns: { valid: boolean, values: { name, price, priority } }
      */
     const validateItemForm = () => {
         clearErrors();

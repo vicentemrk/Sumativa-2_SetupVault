@@ -8,22 +8,12 @@ SetupVault es una aplicación web de alto rendimiento y grado táctico diseñada
 
 ## 🎯 Características Principales
 
-- **Gestión Avanzada del DOM:** Arquitectura sin `innerHTML`, basada estrictamente en la creación y manipulación programática de nodos (`document.createElement`) para garantizar inmunidad total ante ataques XSS.
-- **Interfaz Mobile-First & Glassmorphism:** Interfaz premium con tema "Tactical Steel", soporte dinámico de modo Claro/Oscuro y grilla responsive (1-2-4).
-- **Lógica de Estado Robusta (IIFE):** Todo el manejo del ciclo de vida se realiza mediante una expresión de función ejecutada inmediatamente (IIFE) para encapsulamiento estricto.
-- **Seguridad y Validación:** Validación exhaustiva a través de Expresiones Regulares (Regex) "Fail-Fast", coerción segura de tipos y mitigación proactiva contra datos corruptos.
-- **Persistencia Confiable:** Almacenamiento optimizado y serialización segura en `localStorage`, incluyendo funcionalidad de "Hard Reset" con confirmación visual.
-- **Algoritmos Estables:** Motor de filtrado y ordenamiento dinámico que re-renderiza la jerarquía utilizando el patrón Strategy (Urgente > Planificada > Deseo).
-- **Compatibilidad i18n:** Soporte de locale dinámico en formato de divisas y en el ordenamiento alfabético (`localeCompare`).
 
-## 🛠️ Tecnologías Utilizadas
+## 📋 Informe técnico y notas de auditoría
 
-Este proyecto se ha construido respetando estrictamente los estándares académicos sin dependencias masivas o empaquetadores:
+Este repositorio incluye documentación técnica y comentarios en el código que explican las decisiones de diseño, la estrategia de validación y las consideraciones de seguridad. Para una revisión detallada del razonamiento técnico, consulte el informe de auditoría:
 
-* **HTML5:** Estructuras semánticas y accesibles.
-* **CSS 5 (Tailwind CSS CDN):** Diseño modular basado en utilidades y variables CSS nativas.
-* **Vanilla JavaScript (ES6+):** Lógica funcional, sin frameworks, empleando los últimos estándares (`crypto.randomUUID()`, `.reduce()`, Destructuring).
-* **Lucide Icons:** Iconografía vectorial minimalista e inyectada mediante CDN.
+👉 **[Informe de auditoría técnica (AUDITORIA.md)](./AUDITORIA.md)**
 
 ## 🚀 Despliegue en GitHub Pages
 
@@ -47,14 +37,11 @@ Desplegar SetupVault es rápido y no requiere pasos de compilación.
 4. **Acceso:**
    En uno o dos minutos, tu aplicación estará en vivo y recibirás una URL similar a `https://vicentemrk.github.io/Sumativa-2_SetupVault/`.
 
-## 🤖 Uso de IA (Asistencia y Buenas Prácticas)
+## 📋 Informe técnico y notas de auditoría
 
-De acuerdo con los requisitos académicos, este proyecto ha utilizado herramientas de Inteligencia Artificial (IA) de manera estratégica para elevar la calidad del código, refactorizar lógica crítica y asegurar el cumplimiento de estrictos estándares de ciberseguridad (mitigación XSS). 
+Este repositorio incluye documentación técnica y comentarios en el código que explican las decisiones de diseño, la estrategia de validación y las consideraciones de seguridad. Para una revisión detallada del razonamiento técnico, consulte el informe de auditoría:
 
-En el código fuente (específicamente en `app.js`), encontrarás comentarios explícitos etiquetados como **`[Asistencia IA]`** detallando el razonamiento detrás de las optimizaciones implementadas.
-
-Para revisar los prompts exactos, el análisis de las sugerencias y las metodologías de seguridad aplicadas, por favor consulta el informe técnico detallado:
-👉 **[Leer Informe de Uso de IA (USO_IA.md)](./USO_IA.md)**
+👉 **[Informe de auditoría técnica (AUDITORIA.md)](./AUDITORIA.md)**
 
 
 5. 👤 Autor

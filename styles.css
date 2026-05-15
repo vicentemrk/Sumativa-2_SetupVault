@@ -5,6 +5,16 @@
    ========================================================================== */
 
 /* --- 1. Reset & Global Styles --- */
+/*
+    styles.css - Visual system and theme tokens
+
+    Notes (senior developer):
+    - This stylesheet contains component-level rules and theme overrides for
+        both dark and light modes. Keep color and spacing decisions here so that
+        layout and behavior remain decoupled from presentational choices.
+    - Prefer small, focused CSS blocks over global resets when possible. Theme
+        toggles are implemented by switching `html[data-theme="light"]`.
+*/
 * {
     margin: 0;
     padding: 0;
