@@ -126,6 +126,18 @@ const app = (() => {
     };
 
     /**
+     * Map priority text to CSS class name.
+     * Used for styling item cards and badges by priority level.
+     */
+    const getPriorityClass = (priority) => {
+        const normalized = priority.toLowerCase().replace(/\s+/g, '');
+        if (normalized === 'urgente') return 'urgente';
+        if (normalized === 'planificada') return 'planificada';
+        if (normalized === 'deseo') return 'deseo';
+        return 'planificada'; // Default fallback
+    };
+
+    /**
      * Pipeline funcional para la derivación de datos (filtrado y ordenamiento).
      * Mantiene estricta inmutabilidad sobre el estado original.
      * Retorna una proyección ordenada y filtrada optimizada para renderizados reactivos.
