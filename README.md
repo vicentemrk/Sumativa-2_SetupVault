@@ -11,6 +11,7 @@ SetupVault es una aplicación web enfocada en la gestión eficiente y visual de 
 *   **Cálculo en Tiempo Real:** Totalizador dinámico de presupuesto utilizando el método `.reduce()` para un cálculo funcional y libre de mutaciones innecesarias.
 *   **Seguridad Frontend Estricta (Anti-XSS):** Prevención activa de inyección de código mediante el uso exclusivo de `document.createElement()`, `textContent` y `setAttribute`. El uso de `innerHTML` o `insertAdjacentHTML` está completamente prohibido para la inserción de datos dinámicos.
 *   **Validaciones Robustas:** Sanitización de inputs y uso de expresiones regulares (Regex) para garantizar que los nombres de los artículos sean seguros y los precios matemáticamente válidos.
+*   **Arquitectura CSS Escalable:** Implementación híbrida de clases utilitarias (Utility-first) combinadas con componentes BEM modulares. Soporta de forma nativa temas dinámicos (Light/Dark Mode) a través de tokens semánticos en `:root` y `data-theme`.
 *   **Interfaz de Alto Impacto:** Paleta de colores "Midnight Forest" oscura con acentos tácticos, tipografía Inter y diseño Mobile-First adaptable (1-2-4 columnas).
 *   **Gestión de Emergencia (Hard Reset):** Funcionalidad de purgado seguro del estado con validación modal (A11y friendly).
 

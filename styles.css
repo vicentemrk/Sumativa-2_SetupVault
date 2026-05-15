@@ -1,3 +1,10 @@
+/* ==========================================================================
+   SetupVault - Core Stylesheet
+   Architecture: Utility-first mixed with BEM-inspired component classes
+   Theme Support: Light/Dark mode via CSS variables and data-theme
+   ========================================================================== */
+
+/* --- 1. Reset & Global Styles --- */
 * {
     margin: 0;
     padding: 0;
@@ -36,6 +43,7 @@ body {
     scrollbar-width: none;
 }
 
+/* --- 2. Badges & Indicators --- */
 .badge-urgente {
     background: rgba(239, 68, 68, 0.15);
     color: #ef4444;
@@ -51,6 +59,7 @@ body {
     color: #9ca3af;
 }
 
+/* --- 3. Form Elements (Inputs, Selects, Controls) --- */
 .input-field {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -64,6 +73,7 @@ body {
     outline: none;
 }
 
+/* --- 4. Buttons & Interactive Elements --- */
 .btn-primary {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     transition: all 0.3s ease;
@@ -120,6 +130,7 @@ body {
     outline: none;
 }
 
+/* --- 5. Structural Components (Cards, Panels) --- */
 .card {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -132,6 +143,7 @@ body {
     border-color: rgba(255, 255, 255, 0.12);
 }
 
+/* --- 6. Theming overrides (Light Mode overrides) --- */
 html[data-theme="light"] .card,
 html[data-theme="light"] .modal-shell,
 html[data-theme="light"] .metric-card,
@@ -231,6 +243,7 @@ html[data-theme="light"] .badge-deseo {
     color: #475569;
 }
 
+/* --- 7. Domain Specific Components (Inventory Items) --- */
 .item-card {
     background: rgba(255, 255, 255, 0.04);
     border-left: 3px solid #10b981;
@@ -260,6 +273,7 @@ html[data-theme="light"] .badge-deseo {
     border-radius: 8px;
 }
 
+/* --- 8. Modals & Overlays --- */
 .modal-overlay {
     background: rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(2px);
@@ -302,6 +316,7 @@ html[data-theme="light"] .badge-deseo {
     color: #f87171;
 }
 
+/* --- 9. Metrics & Dashboards --- */
 .metric-grid {
     align-items: stretch;
 }
@@ -359,6 +374,7 @@ html[data-theme="light"] .badge-deseo {
     background: #10b981;
 }
 
+/* --- 10. Media Queries & Responsiveness --- */
 @media (min-width: 1024px) {
     .modal-shell {
         width: min(100%, 72rem);

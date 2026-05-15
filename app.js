@@ -19,27 +19,24 @@ const app = (() => {
     const elements = {};
 
     /**
-     * [ASISTENCIA IA] Carga defensiva de estado con normalización
-     * Patrón: Validación e normalización en lectura (no en escritura)
-     * Razonamiento (Robustez):
-     *   - No confía en datos del localStorage
-     *   - Convierte datos antiguos al schema actual sin error
-     *   - Coerción segura: Number(), String(), OR para defaults
-     *   - Idempotencia: guardar + recargar mantiene integridad
+     * Carga defensiva del estado con normalización de esquema.
+     * Implementa validación y sanitización 'on-read' para mitigar la inyección 
+     * de datos corruptos desde localStorage. Garantiza retrocompatibilidad y
+     * coerciones de tipo seguras para mantener la integridad del estado.
      */
     const loadState = () => {
         try {
             const storedItems = JSON.parse(localStorage.getItem(STORAGE_KEYS.items)) || [];
-            // [ASISTENCIA IA] Normalización de schema en lectura
+            // Normalización de esquema en tiempo de lectura (schema validation)
             state.items = storedItems.map((item, index) => ({
-                // [ASISTENCIA IA] UUIDs en lugar de índices (escalable, merge-safe)
+                // Transición a UUIDs v4 para identificadores únicos y merge-safe
                 id: item.id || crypto.randomUUID(),
-                // [ASISTENCIA IA] Sanitización de texto en lectura (prevención XSS tardía)
+                // Sanitización estricta de inputs (Defensa en profundidad contra XSS)
                 name: sanitizeText(String(item.name || '')),
-                // [ASISTENCIA IA] Coerción segura con fallback
+                // Coerción de tipos segura con fallback numérico
                 price: Number(item.price) || 0,
                 priority: item.priority || 'Planificada',
-                // [ASISTENCIA IA] createdAt para ordenamiento "más reciente"
+                // Timestamp inmutable para preservación del ordenamiento cronológico
                 createdAt: Number(item.createdAt) || Date.now() - index
             }));
             state.budget = JSON.parse(localStorage.getItem(STORAGE_KEYS.budget)) || 0;
@@ -60,24 +57,16 @@ const app = (() => {
     const formatCurrency = (value) => `$${Number(value).toLocaleString('es-CL')}`;
 
     /**
-     * [ASISTENCIA IA] Sanitización de texto para prevención de XSS
-     * Propósito: Limpiar entrada de usuario eliminando espacios múltiples y normalizando
-     * Razonamiento:
-     *   - trim(): Elimina espacios al inicio/final
-     *   - replace(/\s+/g, ' '): Normaliza espacios múltiples a uno solo
-     *   - Combinado con textContent en DOM, previene inyección de HTML malicioso
-     * Mejora futuro: Agregar expresiones regulares adicionales si se requiere
+     * Sanitiza el input del usuario eliminando espacios múltiples y normalizando la cadena.
+     * Componente crítico de la estrategia de defensa contra inyecciones cuando
+     * se combina con métodos de inserción segura en el DOM (textContent).
      */
     const sanitizeText = (value) => value.trim().replace(/\s+/g, ' ');
 
     /**
-     * [ASISTENCIA IA] Validación con expresión regular
-     * Propósito: Validar que nombres de artículos contengan solo caracteres seguros
-     * Expresión regular: /^[a-zA-Z0-9\s\-_]+$/
-     *   - ^...$: Anclas para validar cadena completa
-     *   - [a-zA-Z0-9\s\-_]+: Permite letras, números, espacios, guiones y guiones bajos
-     * Razonamiento: Previene inyección de caracteres especiales en JSON/HTML
-     * Futuro: Considerar validadores para RUT, email, teléfono según rubric
+     * Valida que el string contenga exclusivamente caracteres alfanuméricos y separadores seguros.
+     * Patrón Regex: /^[a-zA-Z0-9\s\-_]+$/
+     * Actúa como barrera primaria contra la inyección de caracteres especiales o payloads maliciosos.
      */
     const validateName = (value) => /^[a-zA-Z0-9\s\-_]+$/.test(value);
 
@@ -90,19 +79,15 @@ const app = (() => {
     };
 
     /**
-     * [ASISTENCIA IA] Función pura para cálculo de total gastado
-     * Razonamiento (Refactorización modular):
-     *   - Sin efectos secundarios (pure function)
-     *   - Reutilizable en múltiples lugares (modal, resumen, tarjetas)
-     *   - Fácil de testear: entrada → salida determinística
-     *   - Patrón: Separación de "acceso a datos" vs "lógica de negocio"
+     * Función pura para el cálculo del total gastado.
+     * Extraída para maximizar la reutilización, facilitar el testing unitario y
+     * garantizar la ausencia de efectos secundarios en el estado global.
      */
     const getTotalSpent = () => state.items.reduce((sum, item) => sum + item.price, 0);
 
     /**
-     * [ASISTENCIA IA] Función pura para cálculo de presupuesto restante
-     * Composición: Reutiliza getTotalSpent() para no duplicar lógica
-     * Patrón: DRY (Don't Repeat Yourself) aplicado a cálculos
+     * Función pura para calcular el presupuesto remanente.
+     * Aplica el principio DRY mediante la composición sobre getTotalSpent().
      */
     const getBudgetRemaining = () => state.budget - getTotalSpent();
 
@@ -138,17 +123,9 @@ const app = (() => {
     };
 
     /**
-     * [ASISTENCIA IA] Derivación de datos con filtrado y ordenamiento
-     * Patrón: Pipeline funcional sin mutación del estado original
-     * Razonamiento (Refactorización modular):
-     *   1. Normaliza búsqueda con sanitizeText() y toLowerCase()
-     *   2. Filtra por query + prioridad en una pasada
-     *   3. Aplica comparador seleccionado (Strategy pattern)
-     *   4. Retorna copia ordenada sin mutar state.items
-     * Beneficios:
-     *   - Determinista: misma entrada = mismo resultado siempre
-     *   - Re-render derivado: renderItems() llama a getVisibleItems() cada vez
-     *   - Escalable: agregar filtros no requiere refactorización mayor
+     * Pipeline funcional para la derivación de datos (filtrado y ordenamiento).
+     * Mantiene estricta inmutabilidad sobre el estado original.
+     * Retorna una proyección ordenada y filtrada optimizada para renderizados reactivos.
      */
     const getVisibleItems = () => {
         const searchQuery = sanitizeText(state.searchQuery).toLowerCase();
@@ -160,10 +137,9 @@ const app = (() => {
         });
 
         /**
-         * [ASISTENCIA IA] Patrón Strategy para ordenamiento flexible
-         * Cada comparador es una función pura que retorna -1, 0 o 1 (estándar JavaScript)
-         * Ventaja: Agregar nuevos criterios sin tocar lógica principal de sort
-         * Nota: localeCompare('es', ...) ordena correctamente acentos y ñ en español
+         * Implementación del Patrón Strategy para la lógica de ordenamiento.
+         * Desacopla los criterios de ordenamiento de la ejecución.
+         * Utiliza localeCompare('es', { sensitivity: 'base' }) para un soporte robusto de i18n.
          */
         const comparators = {
             recent: (left, right) => (right.createdAt || 0) - (left.createdAt || 0),
@@ -265,15 +241,10 @@ const app = (() => {
     };
 
     /**
-     * [ASISTENCIA IA] Creación segura del DOM - Prevención de XSS
-     * Patrón: createElement + appendChild (programmatic construction)
-     * NUNCA usar: card.innerHTML = `<h3>${item.name}</h3>` (¡VULNERABLE A XSS!)
-     * Razonamiento (Seguridad):
-     *   - createElement(): Crea elementos de forma programática, no parsing HTML
-     *   - textContent: Interpreta como texto plano, nunca como HTML
-     *   - dataset.* y setAttribute(): Para atributos de datos, nunca concatenación
-     * Previene: <img src=x onerror=alert('XSS')>
-     * Referencia: https://developer.mozilla.org/en-US/docs/Glossary/Cross_site_scripting_(XSS)
+     * Construcción programática segura del DOM.
+     * Prohíbe explícitamente el uso de innerHTML/insertAdjacentHTML para evitar vulnerabilidades XSS.
+     * Todo el contenido dinámico se inyecta mediante textContent y setAttribute, asegurando
+     * que el motor de renderizado lo procese de forma aislada como texto plano o metadatos.
      */
     const createItemCard = (item) => {
         const card = document.createElement('article');
@@ -287,7 +258,7 @@ const app = (() => {
 
         const title = document.createElement('h3');
         title.className = 'text-sm font-semibold text-white line-clamp-2';
-        // ✅ SEGURO: textContent previene XSS (no interpreta HTML)
+        // Inyección segura: textContent previene la ejecución de nodos DOM maliciosos
         title.textContent = item.name;
 
         const badgeWrap = document.createElement('div');
@@ -307,7 +278,7 @@ const app = (() => {
         const editButton = document.createElement('button');
         editButton.type = 'button';
         editButton.className = 'text-slate-500 hover:text-emerald-300 transition p-1';
-        // [ASISTENCIA IA] Uso de dataset.* para atributos de datos (seguro)
+        // Uso estricto del API dataset para el almacenamiento seguro de referencias de estado
         editButton.dataset.action = 'edit';
         editButton.dataset.itemId = item.id;
         // aria-label: Concatenación segura porque textContent es sanitizado en loadState
@@ -396,17 +367,10 @@ const app = (() => {
     };
 
     /**
-     * [ASISTENCIA IA] Validación estructurada con feedback claro
-     * Patrón: Validación multicapa (tipo + rango + restricciones de negocio)
-     * Razonamiento:
-     *   1. Limpia estado anterior de errores
-     *   2. Sanitiza/coerciona entrada del usuario
-     *   3. Valida en cascada con mensajes específicos
-     *   4. Retorna estructura { valid, values } para reutilización
-     * Beneficios:
-     *   - Fail-fast pero completo: muestra todos los errores
-     *   - Mensajes localizados en español
-     *   - Fácil de testear cada rama de validación
+     * Pipeline de validación estructurada y multicapa (tipo, formato y reglas de negocio).
+     * Sigue una filosofía "fail-fast" acumulativa: evalúa todas las reglas para 
+     * proporcionar un feedback exhaustivo en la UI en una sola pasada.
+     * Desacopla la validación retornando un DTO estandarizado { valid, values }.
      */
     const validateItemForm = () => {
         clearErrors();
@@ -418,11 +382,11 @@ const app = (() => {
         let valid = true;
 
         if (!name) {
-            // [ASISTENCIA IA] Validación: campo requerido
+            // Validación de integridad: campo mandatorio
             setFieldError('name', 'El nombre es obligatorio.');
             valid = false;
         } else if (!validateName(name)) {
-            // [ASISTENCIA IA] Validación: expresión regular (prevención de XSS)
+            // Validación de seguridad: mitigación proactiva contra inyección de payloads
             setFieldError('name', 'Solo letras, números, espacios y guiones.');
             valid = false;
         }
