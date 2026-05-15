@@ -56,5 +56,9 @@ En el código fuente (específicamente en `app.js`), encontrarás comentarios ex
 Para revisar los prompts exactos, el análisis de las sugerencias y las metodologías de seguridad aplicadas, por favor consulta el informe técnico detallado:
 👉 **[Leer Informe de Uso de IA (USO_IA.md)](./USO_IA.md)**
 
+
+5. 👤 Autor
+
+- GitHub: [@vicentemrk](https://github.com/vicentemrk)
 ---
 *Desarrollado con rigor arquitectónico para la asignatura Sumativa 2.*
