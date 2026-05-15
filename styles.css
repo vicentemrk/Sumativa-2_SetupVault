@@ -216,6 +216,27 @@ html[data-theme="light"] .text-slate-500 {
     color: #64748b !important;
 }
 
+html[data-theme="light"] .text-slate-300 {
+    color: #475569 !important;
+}
+
+html[data-theme="light"] .text-emerald-400,
+html[data-theme="light"] .text-emerald-500 {
+    color: #059669 !important;
+}
+
+html[data-theme="light"] .text-red-400 {
+    color: #dc2626 !important;
+}
+
+html[data-theme="light"] .hover\:text-emerald-300:hover {
+    color: #059669 !important;
+}
+
+html[data-theme="light"] .hover\:text-red-400:hover {
+    color: #dc2626 !important;
+}
+
 html[data-theme="light"] .icon-wrapper {
     background: rgba(16, 185, 129, 0.08);
 }
