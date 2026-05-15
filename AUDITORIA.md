@@ -55,4 +55,4 @@ El estado JSON estandarizado está listo para ser insertado en una base de datos
 La abstracción del DOM actual facilita la inyección futura de un diccionario JSON que reemplace textos hardcodeados (como "Urgente", "Nuevo artículo") por claves traducibles.
 
 ---
-*Auditoría generada autónomamente bajo los parámetros de excelencia de Antigravity AI.*
+*Informe preparado por el equipo de desarrollo.*

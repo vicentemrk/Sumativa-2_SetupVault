@@ -1,6 +1,12 @@
-1- Mejora la UI y la experiencia del usuario para luego ir agregando, mejoras como light mode.
-Mejorar la font, y la iconografia se podria personalizar mas. ademas de hacer todo mas bello1
-2- Necesito crear un logo para la misma pagina web, dame al menos 15 ideas diferentes entre ellas para poder hacerlo 
-3-
-4-
-5-
+Mejoras implementadas:
+1- Rediseño completo de UI/UX con modo claro/oscuro
+2- Refactorización de seguridad (prevención XSS mediante DOM seguro)
+3- Implementación de búsqueda, filtrado y ordenamiento
+4- Mejora de tipografía con Inter font
+5- Iconografía personalizada con Lucide
+6- Accesibilidad (WCAG AA) con atributos ARIA
+7- Persistencia de estado en localStorage
+8- Responsive design para todos los dispositivos
+9- Microinteracciones y animaciones fluidas
+10- Validación robusta de formularios
+
