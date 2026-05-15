@@ -1,5 +1,5 @@
 Mejoras implementadas:
-1- Rediseño completo de UI/UX con modo claro/oscuro
+1- Rediseño completo de UI/UX con modo claro/oscuroKO
 2- Refactorización de seguridad (prevención XSS mediante DOM seguro)
 3- Implementación de búsqueda, filtrado y ordenamiento
 4- Mejora de tipografía con Inter font

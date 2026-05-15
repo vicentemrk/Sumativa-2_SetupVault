@@ -1,18 +1,4 @@
-<!DOCTYPE html>
-<!--
-    SetupVault - HTML shell
-
-    Notes (senior developer):
-    - Semantic structure: header, main and sections to improve accessibility and
-        make testing predictable.
-    - The UI is intentionally split: controls (search/filter/sort) live above the
-        inventory grid so the render logic can operate on a single source of truth
-        (the `state` object in `app.js`).
-    - Modal markup is present in the document but hidden by default; the modal is
-        toggled purely via class changes to avoid reflow surprises.
-    - Keep this file minimal: visual rules and interactive behavior are handled
-        in `styles.css` and `app.js` respectively to preserve separation of concerns.
--->
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -22,346 +8,298 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <meta name="theme-color" content="#10b981">
     <script src="app.js" defer></script>
 </head>
-<body class="bg-slate-950">
-    <div class="min-h-screen flex flex-col">
-        <!-- ==========================================
-             1. HEADER: Navegación principal (Sticky + Glassmorphism)
-             ========================================== -->
-        <header class="border-b border-white/5 sticky top-0 z-50 bg-slate-950/50 backdrop-blur-xl">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div class="flex items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <a href="https://github.com/vicentemrk" target="_blank" rel="noopener noreferrer" aria-label="Perfil de GitHub de Vicente Carrillo" class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center transition-all duration-300 hover:scale-105 hover:bg-emerald-500/20 hover:border-emerald-400 group">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-8 h-8 text-emerald-500 logo-setupvault transition-all duration-300 group-hover:text-emerald-400">
-                                <!-- Glowing Hexagon Background Pattern -->
-                                <g opacity="0.15">
-                                    <path d="M50 5 L85 25 L85 75 L50 95 L15 75 L15 25 Z" />
-                                    <path d="M50 15 L76 30 L76 70 L50 85 L24 70 L24 30 Z" />
-                                    <path d="M50 25 L67 35 L67 65 L50 75 L33 65 L33 35 Z" />
-                                </g>
-                                
-                                <g transform="translate(50, 50)">
-                                    <defs>
-                                        <circle id="node" cx="0" cy="0" r="2.5" fill="currentColor" stroke="none" />
-                                        <circle id="small-node" cx="0" cy="0" r="1.5" fill="currentColor" stroke="none" />
-                                        <polygon id="hex" points="0,-6 5.2,-3 5.2,3 0,6 -5.2,3 -5.2,-3" />
-                                    </defs>
-                                    
-                                    <!-- Right side -->
-                                    <g id="circuit-right">
-                                        <!-- V-cores -->
-                                        <path d="M 0 30 L 25 5 L 25 -15 L 0 -40" />
-                                        <path d="M 0 20 L 15 5 L 15 -10 L 0 -25" />
-                                        <path d="M 0 10 L 5 5 L 5 -5 L 0 -10" />
-
-                                        <!-- Horizontal routing -->
-                                        <path d="M 15 -10 L 25 -10 L 32 -17 L 32 -25" />
-                                        <path d="M 25 5 L 35 5 L 42 12 L 42 20" />
-                                        
-                                        <!-- Outer traces -->
-                                        <path d="M 0 45 L 35 10 L 35 -20 L 15 -40 L 0 -40" />
-                                        
-                                        <!-- Complex routing -->
-                                        <path d="M 5 5 L 10 10 L 10 20" />
-                                        <path d="M 15 25 L 20 20 L 20 10" />
-                                        <path d="M 35 10 L 40 5 L 40 -5 L 30 -15" />
-                                        <path d="M 25 -25 L 20 -30 L 10 -30 L 5 -25" />
-                                        
-                                        <!-- Nodes -->
-                                        <use href="#node" x="25" y="-15" />
-                                        <use href="#node" x="15" y="-10" />
-                                        <use href="#node" x="5" y="-5" />
-                                        <use href="#node" x="25" y="5" />
-                                        <use href="#node" x="15" y="5" />
-                                        <use href="#node" x="5" y="5" />
-                                        
-                                        <use href="#node" x="32" y="-25" />
-                                        <use href="#node" x="42" y="20" />
-                                        <use href="#node" x="35" y="-20" />
-                                        
-                                        <use href="#small-node" x="10" y="20" />
-                                        <use href="#small-node" x="20" y="10" />
-                                        <use href="#small-node" x="30" y="-15" />
-                                        <use href="#small-node" x="5" y="-25" />
-                                        
-                                        <!-- Tech Hexagons on edges -->
-                                        <use href="#hex" x="32" y="-25" />
-                                        <use href="#hex" x="42" y="20" />
-                                        <use href="#hex" x="20" y="-30" />
-                                    </g>
-                                    
-                                    <!-- Left side (Mirrored) -->
-                                    <use href="#circuit-right" transform="scale(-1, 1)" />
-                                    
-                                    <!-- Spine Nodes -->
-                                    <use href="#node" x="0" y="-40" />
-                                    <use href="#node" x="0" y="-25" />
-                                    <use href="#node" x="0" y="-10" />
-                                    <use href="#node" x="0" y="10" />
-                                    <use href="#node" x="0" y="20" />
-                                    <use href="#node" x="0" y="30" />
-                                    <use href="#node" x="0" y="45" />
-                                </g>
-                            </svg>
+<body class="app-body">
+    <div class="min-vh-100 d-flex flex-column">
+        <header class="app-header sticky-top border-bottom border-white border-opacity-10">
+            <div class="container-xl py-3">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <a href="https://github.com/vicentemrk" target="_blank" rel="noopener noreferrer" aria-label="Perfil de GitHub de Vicente Carrillo" class="brand-mark group">
+                            <i class="bi bi-hdd-network icon-hero"></i>
                         </a>
                         <div>
-                            <h1 class="text-xl font-semibold text-white tracking-tight">SetupVault</h1>
-                            <p class="text-xs text-slate-400">Gestor de Hardware</p>
+                            <h1 class="h4 mb-0 fw-semibold text-white">SetupVault</h1>
+                            <p class="small text-secondary mb-0">Gestor de Hardware</p>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 header-actions">
-                        <button id="btn-export" class="btn-secondary px-3 py-2 rounded-lg text-sm font-medium text-white/80 flex items-center gap-2 hover:text-white">
-                            <i data-lucide="download" stroke-width="1.5" class="w-4 h-4"></i>
-                            <span class="hidden sm:inline">Exportar</span>
+                    <div class="d-flex flex-wrap align-items-center gap-2 header-actions">
+                        <button id="btn-export" class="btn btn-secondary btn-sm d-inline-flex align-items-center gap-2 app-btn-icon">
+                            <i class="bi bi-download"></i>
+                            <span class="d-none d-sm-inline">Exportar</span>
                         </button>
-                        <button id="btn-theme-toggle" class="btn-secondary px-3 py-2 rounded-lg text-sm font-medium text-white/80 flex items-center gap-2 hover:text-white" aria-pressed="false" aria-label="Cambiar tema">
-                            <i id="theme-icon" data-lucide="sun" stroke-width="1.5" class="w-4 h-4"></i>
-                            <span id="theme-label" class="hidden sm:inline">Claro</span>
+                        <button id="btn-theme-toggle" class="btn btn-secondary btn-sm d-inline-flex align-items-center gap-2 app-btn-icon" aria-pressed="false" aria-label="Cambiar tema">
+                            <i id="theme-icon" class="bi bi-sun-fill"></i>
+                            <span id="theme-label" class="d-none d-sm-inline">Claro</span>
                         </button>
-                        <button id="btn-reset" class="btn-danger px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
-                            <i data-lucide="trash-2" stroke-width="1.5" class="w-4 h-4"></i>
-                            <span class="hidden sm:inline">Reset</span>
+                        <button id="btn-reset" class="btn btn-danger btn-sm d-inline-flex align-items-center gap-2 app-btn-icon">
+                            <i class="bi bi-trash3"></i>
+                            <span class="d-none d-sm-inline">Reset</span>
                         </button>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- ==========================================
-             2. MAIN CONTENT: Panel de control y vista de inventario
-             ========================================== -->
-        <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-            <section class="card rounded-xl p-6 sm:p-8 mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div class="space-y-2">
-                    <p class="text-xs font-medium text-emerald-400 uppercase tracking-wider">Acción principal</p>
-                    <h2 class="text-lg font-semibold text-white tracking-tight">Formulario de artículos en modal</h2>
-                    <p class="text-sm text-slate-400">Abre un panel amplio para agregar o editar artículos con contexto útil al lado.</p>
-                </div>
-                <button id="btn-open-modal" class="btn-primary px-5 py-3 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2" aria-haspopup="dialog" aria-expanded="false">
-                    <i data-lucide="plus-circle" stroke-width="1.5" class="w-4 h-4"></i>
-                    Agregar artículo
-                </button>
-            </section>
+        <main class="flex-grow-1">
+            <div class="container-xl py-4 py-lg-5">
+                <section class="card app-card rounded-4 mb-4">
+                    <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 p-4 p-lg-5">
+                        <div class="space-y-2">
+                            <p class="text-uppercase text-emerald-400 fw-semibold small mb-1">Acción principal</p>
+                            <h2 class="h5 fw-semibold text-white mb-2">Formulario de artículos en modal</h2>
+                            <p class="text-secondary mb-0">Abre un panel amplio para agregar o editar artículos con contexto útil al lado.</p>
+                        </div>
+                        <button id="btn-open-modal" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2 px-4 py-3" aria-haspopup="dialog" aria-expanded="false">
+                            <i class="bi bi-plus-circle-fill"></i>
+                            <span>Agregar artículo</span>
+                        </button>
+                    </div>
+                </section>
 
-            <!-- Dashboard: Métricas de gasto y presupuesto -->
-            <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div class="card rounded-xl p-6">
-                    <div class="flex items-start justify-between mb-4">
+                <section class="row g-4 mb-4">
+                    <div class="col-12 col-md-6">
+                        <div class="card app-card h-100 rounded-4">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+                                    <div>
+                                        <p class="text-uppercase text-secondary small fw-semibold mb-1">Gasto Total</p>
+                                        <h3 id="total-amount" class="display-6 fw-bold text-white mb-0">$0</h3>
+                                    </div>
+                                    <div class="icon-wrapper">
+                                        <i class="bi bi-wallet2 icon-md text-emerald-400"></i>
+                                    </div>
+                                </div>
+                                <div class="progress app-progress" role="progressbar" aria-label="Uso del presupuesto" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                    <div id="budget-bar" class="progress-bar app-progress-bar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="card app-card h-100 rounded-4">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+                                    <div>
+                                        <p class="text-uppercase text-secondary small fw-semibold mb-1">Presupuesto</p>
+                                        <h3 id="budget-text" class="display-6 fw-bold text-white mb-0">—</h3>
+                                    </div>
+                                    <div class="icon-wrapper">
+                                        <i class="bi bi-bullseye icon-md text-emerald-400"></i>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <input id="input-budget" type="number" placeholder="1000000" class="form-control input-field flex-grow-1" />
+                                    <button id="btn-save-budget" class="btn btn-secondary px-4">Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card app-card rounded-4 mb-4 filter-panel">
+                    <div class="card-body p-4 p-lg-4">
+                        <div class="row g-3">
+                            <div class="col-12 col-lg-6">
+                                <label for="input-search" class="control-label">Buscar</label>
+                                <input id="input-search" type="search" placeholder="Busca por nombre de artículo" class="form-control filter-field" />
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label for="select-priority-filter" class="control-label">Filtrar prioridad</label>
+                                <select id="select-priority-filter" class="form-select filter-field">
+                                    <option value="all">Todas</option>
+                                    <option value="Urgente">Urgente</option>
+                                    <option value="Planificada">Planificada</option>
+                                    <option value="Deseo">Deseo</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label for="select-sort" class="control-label">Ordenar por</label>
+                                <select id="select-sort" class="form-select filter-field">
+                                    <option value="recent">Más recientes</option>
+                                    <option value="nameAsc">Nombre A-Z</option>
+                                    <option value="nameDesc">Nombre Z-A</option>
+                                    <option value="priceAsc">Precio menor a mayor</option>
+                                    <option value="priceDesc">Precio mayor a menor</option>
+                                    <option value="priority">Prioridad</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <div class="d-flex align-items-end justify-content-between gap-3 mb-3">
                         <div>
-                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Gasto Total</p>
-                            <h3 id="total-amount" class="text-3xl font-bold text-white mt-2">$0</h3>
-                        </div>
-                        <div class="icon-wrapper">
-                            <i data-lucide="wallet" stroke-width="1.5" class="w-5 h-5 text-emerald-400"></i>
+                            <h2 class="h5 fw-semibold text-white mb-1">Mi Inventario</h2>
+                            <p class="small text-secondary mb-0" id="items-count">0 artículos</p>
                         </div>
                     </div>
-                    <div class="h-1 bg-white/5 rounded-full overflow-hidden">
-                        <div id="budget-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width: 0%"></div>
-                    </div>
-                </div>
 
-                <div class="card rounded-xl p-6">
-                    <div class="flex items-start justify-between mb-4">
-                        <div>
-                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Presupuesto</p>
-                            <h3 id="budget-text" class="text-3xl font-bold text-white mt-2">—</h3>
+                    <div id="items-grid" class="row g-3"></div>
+
+                    <div id="empty-state" class="d-none">
+                        <div class="card app-card rounded-4 text-center py-5">
+                            <div class="card-body py-4">
+                                <div class="empty-icon mx-auto mb-3">
+                                    <i class="bi bi-inbox icon-empty text-secondary"></i>
+                                </div>
+                                <h3 id="empty-state-title" class="h6 fw-semibold text-white mb-1">Tu bóveda está vacía</h3>
+                                <p id="empty-state-text" class="text-secondary mb-0">Comienza agregando tu primer artículo</p>
+                            </div>
                         </div>
-                        <div class="icon-wrapper">
-                            <i data-lucide="target" stroke-width="1.5" class="w-5 h-5 text-emerald-400"></i>
-                        </div>
                     </div>
-                    <div class="flex gap-2">
-                        <input id="input-budget" type="number" placeholder="1000000" class="input-field flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder-slate-500">
-                        <button id="btn-save-budget" class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium text-white">Guardar</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Panel de Filtrado: Búsqueda y ordenamiento interactivo -->
-            <section class="card rounded-xl p-5 sm:p-6 mb-8 filter-panel">
-                <div class="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(180px,0.8fr)_minmax(180px,0.8fr)]">
-                    <div>
-                        <label for="input-search" class="control-label">Buscar</label>
-                        <input id="input-search" type="search" placeholder="Busca por nombre de artículo" class="filter-field w-full px-3 py-3 rounded-lg text-sm text-white placeholder-slate-500">
-                    </div>
-
-                    <div>
-                        <label for="select-priority-filter" class="control-label">Filtrar prioridad</label>
-                        <select id="select-priority-filter" class="filter-field w-full px-3 py-3 rounded-lg text-sm text-white bg-slate-900/50">
-                            <option value="all">Todas</option>
-                            <option value="Urgente">Urgente</option>
-                            <option value="Planificada">Planificada</option>
-                            <option value="Deseo">Deseo</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="select-sort" class="control-label">Ordenar por</label>
-                        <select id="select-sort" class="filter-field w-full px-3 py-3 rounded-lg text-sm text-white bg-slate-900/50">
-                            <option value="recent">Más recientes</option>
-                            <option value="nameAsc">Nombre A-Z</option>
-                            <option value="nameDesc">Nombre Z-A</option>
-                            <option value="priceAsc">Precio menor a mayor</option>
-                            <option value="priceDesc">Precio mayor a menor</option>
-                            <option value="priority">Prioridad</option>
-                        </select>
-                    </div>
-                </div>
-            </section>
-
-            <section>
-                <div class="mb-6">
-                    <h2 class="text-lg font-semibold text-white tracking-tight">Mi Inventario</h2>
-                    <p class="text-sm text-slate-400 mt-1" id="items-count">0 artículos</p>
-                </div>
-
-                <div id="items-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
-
-                <div id="empty-state" class="col-span-full flex flex-col items-center justify-center py-16 text-center">
-                    <div class="mb-4 p-4 rounded-lg bg-white/5">
-                        <i data-lucide="inbox" stroke-width="1.5" class="w-8 h-8 text-slate-500 mx-auto"></i>
-                    </div>
-                    <h3 id="empty-state-title" class="text-sm font-medium text-white mb-1">Tu bóveda está vacía</h3>
-                    <p id="empty-state-text" class="text-sm text-slate-400">Comienza agregando tu primer artículo</p>
-                </div>
-            </section>
+                </section>
+            </div>
         </main>
 
-        <footer class="bg-slate-950/80 backdrop-blur-md border-t border-white/10 py-6 mt-auto shrink-0 z-10">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-                <div class="flex items-center gap-2 justify-center sm:justify-start">
-                    <i data-lucide="shield-check" stroke-width="1.5" class="w-4 h-4 text-emerald-500"></i>
-                    <p class="text-sm text-slate-500">© 2026 SetupVault. Todos los derechos reservados.</p>
-                </div>
-                <div class="flex items-center justify-center sm:justify-end gap-4 text-sm">
-                    <a href="https://github.com/vicentemrk/Sumativa-2_SetupVault" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-slate-400 hover:text-emerald-400 transition-colors">
-                        <i data-lucide="folder-git-2" stroke-width="1.5" class="w-4 h-4"></i>
-                        <span>Repositorio</span>
-                    </a>
-                    <span class="text-white/10">|</span>
-                    <a href="https://github.com/vicentemrk" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-slate-400 hover:text-emerald-400 transition-colors">
-                        <i data-lucide="github" stroke-width="1.5" class="w-4 h-4"></i>
-                        <span>@vicentemrk</span>
-                    </a>
+        <footer class="app-footer border-top border-white border-opacity-10 py-4 mt-auto">
+            <div class="container-xl">
+                <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 text-center text-sm-start">
+                    <div class="d-flex align-items-center gap-2 justify-content-center justify-content-sm-start">
+                        <i class="bi bi-shield-check text-emerald-400"></i>
+                        <p class="small text-secondary mb-0">© 2026 SetupVault. Todos los derechos reservados.</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center justify-content-sm-end gap-4 small">
+                        <a href="https://github.com/vicentemrk/Sumativa-2_SetupVault" target="_blank" rel="noopener noreferrer" class="d-inline-flex align-items-center gap-2 text-secondary text-decoration-none app-link">
+                            <i class="bi bi-folder2-open"></i>
+                            <span>Repositorio</span>
+                        </a>
+                        <span class="text-white-50">|</span>
+                        <a href="https://github.com/vicentemrk" target="_blank" rel="noopener noreferrer" class="d-inline-flex align-items-center gap-2 text-secondary text-decoration-none app-link">
+                            <i class="bi bi-person-circle"></i>
+                            <span>@vicentemrk</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </footer>
     </div>
 
-    <!-- ==========================================
-         3. MODALS: Formularios y diálogos de confirmación
-         ========================================== -->
-         
-    <!-- Modal de Interacción: Creación/Edición de artículos -->
-    <div id="item-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
-        <div class="modal-shell w-full max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
-            <div class="flex items-start justify-between gap-4 px-6 sm:px-8 py-5 border-b border-white/10">
-                <div>
-                    <p class="text-xs font-medium text-emerald-400 uppercase tracking-wider">Formulario de artículo</p>
-                    <h3 id="item-modal-title" class="text-xl font-semibold text-white tracking-tight">Nuevo artículo</h3>
-                    <p id="modal-subtitle" class="text-sm text-slate-400 mt-1">Usa el mismo formulario para agregar o editar.</p>
+    <div id="item-modal" class="app-modal d-none" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
+        <div class="container-fluid h-100 d-flex align-items-center justify-content-center p-3 p-lg-4">
+            <div class="card app-card modal-card w-100 rounded-4 overflow-hidden border-0">
+                <div class="card-header bg-transparent border-bottom border-white border-opacity-10 px-4 px-lg-5 py-4 d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <p class="text-uppercase text-emerald-400 small fw-semibold mb-1">Formulario de artículo</p>
+                        <h3 id="item-modal-title" class="h4 fw-semibold text-white mb-1">Nuevo artículo</h3>
+                        <p id="modal-subtitle" class="text-secondary mb-0">Usa el mismo formulario para agregar o editar.</p>
+                    </div>
+                    <button id="btn-close-modal" type="button" class="btn btn-outline-light btn-sm app-btn-icon" aria-label="Cerrar modal">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
-                <button id="btn-close-modal" type="button" class="modal-close" aria-label="Cerrar modal">
-                    <i data-lucide="x" stroke-width="1.5" class="w-5 h-5"></i>
-                </button>
-            </div>
 
-            <div class="grid gap-0 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.9fr)]">
-                <form id="form-item" class="p-6 sm:p-8 border-b lg:border-b-0 lg:border-r border-white/10">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="sm:col-span-2">
-                            <label for="input-name" class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Nombre</label>
-                            <input id="input-name" type="text" maxlength="80" required placeholder="Ej: RTX 4060" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
-                            <p id="error-name" class="field-error hidden"></p>
-                        </div>
-
-                        <div>
-                            <label for="input-price" class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Precio (CLP)</label>
-                            <input id="input-price" type="number" min="1" required placeholder="Ej: 350000" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
-                            <p id="error-price" class="field-error hidden"></p>
-                        </div>
-
-                        <div>
-                            <label for="input-priority" class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Prioridad</label>
-                            <select id="input-priority" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white bg-slate-900/50">
-                                <option value="">Selecciona...</option>
-                                <option value="Urgente">Urgente</option>
-                                <option value="Planificada">Planificada</option>
-                                <option value="Deseo">Deseo</option>
-                            </select>
-                            <p id="error-priority" class="field-error hidden"></p>
-                        </div>
-                    </div>
-
-                    <div class="modal-actions mt-6 flex flex-col sm:flex-row gap-3">
-                        <button id="btn-cancel-item" type="button" class="btn-secondary flex-1 px-4 py-3 rounded-lg text-sm font-medium text-white">Cancelar</button>
-                        <button type="submit" class="btn-primary flex-1 px-4 py-3 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2">
-                            <i data-lucide="save" stroke-width="1.5" class="w-4 h-4"></i>
-                            <span id="btn-submit-item-label">Agregar artículo</span>
-                        </button>
-                    </div>
-                </form>
-
-                <aside class="modal-sidebar p-6 sm:p-8 space-y-5">
-                    <section class="metric-grid grid grid-cols-2 gap-3">
-                        <div class="metric-card">
-                            <p class="metric-label">Total gastado</p>
-                            <p id="modal-summary-total" class="metric-value">$0</p>
-                        </div>
-                        <div class="metric-card">
-                            <p class="metric-label">Restante</p>
-                            <p id="modal-summary-remaining" class="metric-value">Sin presupuesto</p>
-                        </div>
-                        <div class="metric-card">
-                            <p class="metric-label">Artículos</p>
-                            <p id="modal-summary-count" class="metric-value">0 artículos</p>
-                        </div>
-                        <div id="modal-summary-percentage-wrap" class="metric-card hidden">
-                            <p class="metric-label">Uso</p>
-                            <p id="modal-summary-percentage" class="metric-value">0% usado</p>
-                            <div class="h-1.5 bg-white/5 rounded-full overflow-hidden mt-2">
-                                <div id="modal-summary-percentage-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width: 0%"></div>
+                <div class="row g-0">
+                    <div class="col-lg-7 border-bottom border-lg-end border-white border-opacity-10">
+                        <form id="form-item" class="p-4 p-lg-5">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="input-name" class="form-label control-label">Nombre</label>
+                                    <input id="input-name" type="text" maxlength="80" required placeholder="Ej: RTX 4060" class="form-control input-field" />
+                                    <p id="error-name" class="field-error d-none"></p>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label for="input-price" class="form-label control-label">Precio (CLP)</label>
+                                    <input id="input-price" type="number" min="1" required placeholder="Ej: 350000" class="form-control input-field" />
+                                    <p id="error-price" class="field-error d-none"></p>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label for="input-priority" class="form-label control-label">Prioridad</label>
+                                    <select id="input-priority" class="form-select input-field">
+                                        <option value="">Selecciona...</option>
+                                        <option value="Urgente">Urgente</option>
+                                        <option value="Planificada">Planificada</option>
+                                        <option value="Deseo">Deseo</option>
+                                    </select>
+                                    <p id="error-priority" class="field-error d-none"></p>
+                                </div>
                             </div>
-                        </div>
-                    </section>
 
-                    <section class="help-card">
-                        <div class="flex items-center gap-2 mb-3">
-                            <i data-lucide="sparkles" stroke-width="1.5" class="w-4 h-4 text-emerald-400"></i>
-                            <h4 class="text-sm font-semibold text-white tracking-tight">Ayuda rápida</h4>
-                        </div>
-                        <ul class="help-list">
-                            <li>Nombre: texto seguro, sin símbolos raros.</li>
-                            <li>Precio: número mayor que 0.</li>
-                            <li>Prioridad: selecciona una opción obligatoria.</li>
-                            <li>Editar reutiliza este mismo formulario.</li>
-                        </ul>
-                    </section>
-                </aside>
+                            <div class="d-grid d-sm-flex gap-3 mt-4">
+                                <button id="btn-cancel-item" type="button" class="btn btn-secondary flex-fill">Cancelar</button>
+                                <button type="submit" class="btn btn-primary flex-fill d-inline-flex align-items-center justify-content-center gap-2">
+                                    <i class="bi bi-save"></i>
+                                    <span id="btn-submit-item-label">Agregar artículo</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="col-lg-5">
+                        <aside class="modal-sidebar p-4 p-lg-5 h-100">
+                            <section class="row g-3 metric-grid">
+                                <div class="col-6">
+                                    <div class="metric-card h-100">
+                                        <p class="metric-label">Total gastado</p>
+                                        <p id="modal-summary-total" class="metric-value">$0</p>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card h-100">
+                                        <p class="metric-label">Restante</p>
+                                        <p id="modal-summary-remaining" class="metric-value">Sin presupuesto</p>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card h-100">
+                                        <p class="metric-label">Artículos</p>
+                                        <p id="modal-summary-count" class="metric-value">0 artículos</p>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div id="modal-summary-percentage-wrap" class="metric-card h-100 d-none">
+                                        <p class="metric-label">Uso</p>
+                                        <p id="modal-summary-percentage" class="metric-value">0% usado</p>
+                                        <div class="progress app-progress mt-2">
+                                            <div id="modal-summary-percentage-bar" class="progress-bar app-progress-bar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="help-card mt-4">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="bi bi-stars text-emerald-400"></i>
+                                    <h4 class="h6 fw-semibold text-white mb-0">Ayuda rápida</h4>
+                                </div>
+                                <ul class="help-list mb-0">
+                                    <li>Nombre: texto seguro, sin símbolos raros.</li>
+                                    <li>Precio: número mayor que 0.</li>
+                                    <li>Prioridad: selecciona una opción obligatoria.</li>
+                                    <li>Editar reutiliza este mismo formulario.</li>
+                                </ul>
+                            </section>
+                        </aside>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Crítico: Confirmación de borrado global (Hard Reset) -->
-    <div id="modal-reset" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-reset-title">
-        <div class="card rounded-xl p-8 max-w-sm mx-4 w-full border border-white/10">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="p-2 bg-red-500/15 rounded-lg">
-                    <i data-lucide="alert-circle" stroke-width="1.5" class="w-5 h-5 text-red-400"></i>
+    <div id="modal-reset" class="app-modal d-none" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-reset-title">
+        <div class="container-fluid h-100 d-flex align-items-center justify-content-center p-3">
+            <div class="card app-card rounded-4 border-0 w-100" style="max-width: 420px;">
+                <div class="card-body p-4 p-lg-4">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="p-2 rounded-3 bg-danger bg-opacity-10">
+                            <i class="bi bi-exclamation-circle-fill text-danger"></i>
+                        </div>
+                        <h3 id="modal-reset-title" class="h5 fw-semibold text-white mb-0">Borrar Todo</h3>
+                    </div>
+                    <p class="text-secondary mb-4">¿Estás seguro? Esta acción no se puede deshacer.</p>
+                    <div class="d-flex gap-3">
+                        <button id="btn-cancel-reset" class="btn btn-secondary flex-fill">Cancelar</button>
+                        <button id="btn-confirm-reset" class="btn btn-danger flex-fill">Borrar</button>
+                    </div>
                 </div>
-                <h3 id="modal-reset-title" class="text-lg font-semibold text-white">Borrar Todo</h3>
-            </div>
-            <p class="text-sm text-slate-400 mb-6">¿Estás seguro? Esta acción no se puede deshacer.</p>
-            <div class="flex gap-3">
-                <button id="btn-cancel-reset" class="btn-secondary flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white">Cancelar</button>
-                <button id="btn-confirm-reset" class="btn-danger flex-1 px-4 py-2 rounded-lg text-sm font-medium">Borrar</button>
             </div>
         </div>
     </div>

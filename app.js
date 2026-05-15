@@ -70,6 +70,11 @@ const app = (() => {
      */
     const sanitizeText = (value) => value.trim().replace(/\s+/g, ' ');
 
+    const normalizeSearchText = (value) => sanitizeText(String(value || ''))
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+
     /**
      * Validate an item name. Accepts letters (including common accented chars),
      * numbers, spaces, dashes and underscores.
@@ -109,7 +114,7 @@ const app = (() => {
         const isLight = state.theme === 'light';
         elements.btnThemeToggle.setAttribute('aria-pressed', String(isLight));
         elements.themeLabel.textContent = isLight ? 'Oscuro' : 'Claro';
-        elements.themeIcon.dataset.lucide = isLight ? 'moon' : 'sun';
+        elements.themeIcon.className = isLight ? 'bi bi-moon-fill fs-6' : 'bi bi-sun-fill fs-6';
     };
 
     const comparePriority = (leftPriority, rightPriority) => {
@@ -143,10 +148,10 @@ const app = (() => {
      * Retorna una proyección ordenada y filtrada optimizada para renderizados reactivos.
      */
     const getVisibleItems = () => {
-        const searchQuery = sanitizeText(state.searchQuery).toLowerCase();
+        const searchQuery = normalizeSearchText(state.searchQuery);
 
         let filteredItems = state.items.filter((item) => {
-            const matchesQuery = !searchQuery || item.name.toLowerCase().includes(searchQuery);
+            const matchesQuery = !searchQuery || normalizeSearchText(item.name).includes(searchQuery);
             const matchesPriority = state.priorityFilter === 'all' || item.priority === state.priorityFilter;
             return matchesQuery && matchesPriority;
         });
@@ -176,9 +181,7 @@ const app = (() => {
 
     const createIcon = (name, className = '') => {
         const icon = document.createElement('i');
-        icon.dataset.lucide = name;
-        icon.setAttribute('stroke-width', '1.5');
-        icon.className = className;
+        icon.className = `bi bi-${name} ${className}`.trim();
         return icon;
     };
 
@@ -187,7 +190,7 @@ const app = (() => {
             const errorElement = elements[`error${field.charAt(0).toUpperCase() + field.slice(1)}`];
             if (!errorElement) return;
             errorElement.textContent = '';
-            errorElement.classList.add('hidden');
+            errorElement.classList.add('d-none');
         });
     };
 
@@ -195,7 +198,7 @@ const app = (() => {
         const errorElement = elements[`error${field.charAt(0).toUpperCase() + field.slice(1)}`];
         if (!errorElement) return;
         errorElement.textContent = message;
-        errorElement.classList.remove('hidden');
+        errorElement.classList.remove('d-none');
     };
 
     const clearItemForm = () => {
@@ -245,11 +248,11 @@ const app = (() => {
 
         if (elements.modalPercentageWrap) {
             if (state.budget > 0) {
-                elements.modalPercentageWrap.classList.remove('hidden');
+                elements.modalPercentageWrap.classList.remove('d-none');
                 elements.modalPercentage.textContent = `${usage.toFixed(0)}% usado`;
                 elements.modalPercentageBar.style.width = `${usage}%`;
             } else {
-                elements.modalPercentageWrap.classList.add('hidden');
+                elements.modalPercentageWrap.classList.add('d-none');
                 elements.modalPercentageBar.style.width = '0%';
             }
         }
@@ -265,53 +268,51 @@ const app = (() => {
      *   visual updates are predictable and side-effect free (except DOM append).
      */
     const createItemCard = (item, index = 0) => {
-        const card = document.createElement('article');
-        card.className = `item-card card rounded-xl p-5 ${getPriorityClass(item.priority)}`;
-        card.style.animationDelay = `${index * 0.05}s`;
+        const column = document.createElement('article');
+        column.className = 'col-12 col-md-6 col-lg-4';
+        column.style.animationDelay = `${index * 0.05}s`;
+
+        const card = document.createElement('div');
+        card.className = `card app-card item-card priority-${getPriorityClass(item.priority)} h-100`;
+
+        const body = document.createElement('div');
+        body.className = 'card-body p-4 d-flex flex-column gap-3';
 
         const header = document.createElement('div');
-        header.className = 'flex items-start justify-between gap-3 mb-3';
+        header.className = 'd-flex align-items-start justify-content-between gap-3';
 
         const content = document.createElement('div');
-        content.className = 'flex-1 min-w-0';
+        content.className = 'flex-grow-1 min-w-0';
 
         const title = document.createElement('h3');
-        title.className = 'text-sm font-semibold text-white line-clamp-2';
-        // Set text content explicitly to avoid interpreting user input as HTML.
+        title.className = 'h6 fw-semibold text-white mb-0 text-break';
         title.textContent = item.name;
 
-        const badgeWrap = document.createElement('div');
-        badgeWrap.className = 'flex gap-2 mt-2';
-
         const badge = document.createElement('span');
-        badge.className = `text-xs font-medium px-2 py-1 rounded badge-${getPriorityClass(item.priority)}`;
+        badge.className = `badge rounded-pill badge-${getPriorityClass(item.priority)} mt-2`;
         badge.textContent = item.priority;
 
-        badgeWrap.appendChild(badge);
         content.appendChild(title);
-        content.appendChild(badgeWrap);
+        content.appendChild(badge);
 
         const actions = document.createElement('div');
-        actions.className = 'flex items-center gap-1 shrink-0';
+        actions.className = 'd-flex align-items-center gap-2 flex-shrink-0';
 
         const editButton = document.createElement('button');
         editButton.type = 'button';
-        editButton.className = 'text-slate-500 hover:text-emerald-300 transition p-1';
-        // Store metadata using the dataset API; this keeps IDs and actions separate
-        // from displayed content and is safe for later event delegation.
+        editButton.className = 'btn btn-sm btn-outline-success d-inline-flex align-items-center justify-content-center';
         editButton.dataset.action = 'edit';
         editButton.dataset.itemId = item.id;
-        // aria-label: Concatenación segura porque textContent es sanitizado en loadState
         editButton.setAttribute('aria-label', `Editar ${item.name}`);
-        editButton.appendChild(createIcon('pencil', 'w-4 h-4'));
+        editButton.appendChild(createIcon('pencil-square', 'fs-6'));
 
         const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
-        deleteButton.className = 'text-slate-500 hover:text-red-400 transition p-1';
+        deleteButton.className = 'btn btn-sm btn-outline-danger d-inline-flex align-items-center justify-content-center';
         deleteButton.dataset.action = 'delete';
         deleteButton.dataset.itemId = item.id;
         deleteButton.setAttribute('aria-label', `Eliminar ${item.name}`);
-        deleteButton.appendChild(createIcon('trash-2', 'w-4 h-4'));
+        deleteButton.appendChild(createIcon('trash3', 'fs-6'));
 
         actions.appendChild(editButton);
         actions.appendChild(deleteButton);
@@ -319,13 +320,15 @@ const app = (() => {
         header.appendChild(actions);
 
         const price = document.createElement('div');
-        price.className = 'text-lg font-bold text-white';
+        price.className = 'h5 fw-bold text-white mb-0';
         price.textContent = formatCurrency(item.price);
 
-        card.appendChild(header);
-        card.appendChild(price);
+        body.appendChild(header);
+        body.appendChild(price);
+        card.appendChild(body);
+        column.appendChild(card);
 
-        return card;
+        return column;
     };
 
     const updateInventoryCount = (visibleCount) => {
@@ -352,20 +355,20 @@ const app = (() => {
         updateInventoryCount(visibleItems.length);
 
         if (state.items.length === 0) {
-            elements.emptyState.classList.remove('hidden');
+            elements.emptyState.classList.remove('d-none');
             elements.emptyStateTitle.textContent = 'Tu bóveda está vacía';
             elements.emptyStateText.textContent = 'Comienza agregando tu primer artículo';
             return;
         }
 
         if (visibleItems.length === 0) {
-            elements.emptyState.classList.remove('hidden');
+            elements.emptyState.classList.remove('d-none');
             elements.emptyStateTitle.textContent = 'No hay resultados';
             elements.emptyStateText.textContent = 'Prueba otro término, filtro o criterio de orden.';
             return;
         }
 
-        elements.emptyState.classList.add('hidden');
+        elements.emptyState.classList.add('d-none');
 
         const fragment = document.createDocumentFragment();
         visibleItems.forEach((item, index) => {
@@ -380,10 +383,6 @@ const app = (() => {
         updateThemeToggle();
         renderSummary();
         renderItems();
-
-        if (window.lucide) {
-            lucide.createIcons();
-        }
     };
 
     /**
@@ -453,14 +452,14 @@ const app = (() => {
         }
 
         updateModalChrome();
-        elements.itemModal.classList.remove('hidden');
+        elements.itemModal.classList.remove('d-none');
         elements.itemModal.setAttribute('aria-hidden', 'false');
         elements.inputName.focus();
         renderSummary();
     };
 
     const closeItemModal = () => {
-        elements.itemModal.classList.add('hidden');
+        elements.itemModal.classList.add('d-none');
         elements.itemModal.setAttribute('aria-hidden', 'true');
         clearItemForm();
     };
@@ -497,7 +496,8 @@ const app = (() => {
     };
 
     const setBudget = (budgetValue) => {
-        state.budget = Number.parseFloat(budgetValue) || 0;
+        const parsedBudget = Number.parseFloat(String(budgetValue).replace(/[^\d.,-]/g, '').replace(',', '.'));
+        state.budget = Number.isFinite(parsedBudget) && parsedBudget > 0 ? parsedBudget : 0;
         saveState();
         render();
     };
@@ -553,7 +553,7 @@ const app = (() => {
         state.budget = 0;
         saveState();
         render();
-        elements.modalReset.classList.add('hidden');
+        elements.modalReset.classList.add('d-none');
     };
 
     const bindEvents = () => {
@@ -587,22 +587,22 @@ const app = (() => {
         });
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && !elements.itemModal.classList.contains('hidden')) {
+            if (event.key === 'Escape' && !elements.itemModal.classList.contains('d-none')) {
                 closeItemModal();
             }
         });
 
         elements.btnSaveBudget.addEventListener('click', () => {
-            setBudget(elements.inputBudget.value);
-            elements.inputBudget.value = '';
+            setBudget(elements.inputBudget?.value);
+            if (elements.inputBudget) elements.inputBudget.value = '';
         });
 
         elements.btnReset.addEventListener('click', () => {
-            elements.modalReset.classList.remove('hidden');
+            elements.modalReset.classList.remove('d-none');
         });
 
         elements.btnCancelReset.addEventListener('click', () => {
-            elements.modalReset.classList.add('hidden');
+            elements.modalReset.classList.add('d-none');
         });
 
         elements.btnConfirmReset.addEventListener('click', resetData);
@@ -662,6 +662,7 @@ const app = (() => {
         elements.emptyStateText = document.getElementById('empty-state-text');
         elements.totalAmount = document.getElementById('total-amount');
         elements.budgetText = document.getElementById('budget-text');
+        elements.inputBudget = document.getElementById('input-budget');
         elements.budgetBar = document.getElementById('budget-bar');
         elements.itemsCount = document.getElementById('items-count');
 
@@ -685,9 +686,6 @@ const app = (() => {
         render();
         updateModalChrome();
 
-        if (window.lucide) {
-            lucide.createIcons();
-        }
     };
 
     return {
