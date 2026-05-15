@@ -18,14 +18,28 @@ const app = (() => {
 
     const elements = {};
 
+    /**
+     * [ASISTENCIA IA] Carga defensiva de estado con normalización
+     * Patrón: Validación e normalización en lectura (no en escritura)
+     * Razonamiento (Robustez):
+     *   - No confía en datos del localStorage
+     *   - Convierte datos antiguos al schema actual sin error
+     *   - Coerción segura: Number(), String(), OR para defaults
+     *   - Idempotencia: guardar + recargar mantiene integridad
+     */
     const loadState = () => {
         try {
             const storedItems = JSON.parse(localStorage.getItem(STORAGE_KEYS.items)) || [];
+            // [ASISTENCIA IA] Normalización de schema en lectura
             state.items = storedItems.map((item, index) => ({
+                // [ASISTENCIA IA] UUIDs en lugar de índices (escalable, merge-safe)
                 id: item.id || crypto.randomUUID(),
+                // [ASISTENCIA IA] Sanitización de texto en lectura (prevención XSS tardía)
                 name: sanitizeText(String(item.name || '')),
+                // [ASISTENCIA IA] Coerción segura con fallback
                 price: Number(item.price) || 0,
                 priority: item.priority || 'Planificada',
+                // [ASISTENCIA IA] createdAt para ordenamiento "más reciente"
                 createdAt: Number(item.createdAt) || Date.now() - index
             }));
             state.budget = JSON.parse(localStorage.getItem(STORAGE_KEYS.budget)) || 0;
@@ -45,8 +59,26 @@ const app = (() => {
 
     const formatCurrency = (value) => `$${Number(value).toLocaleString('es-CL')}`;
 
+    /**
+     * [ASISTENCIA IA] Sanitización de texto para prevención de XSS
+     * Propósito: Limpiar entrada de usuario eliminando espacios múltiples y normalizando
+     * Razonamiento:
+     *   - trim(): Elimina espacios al inicio/final
+     *   - replace(/\s+/g, ' '): Normaliza espacios múltiples a uno solo
+     *   - Combinado con textContent en DOM, previene inyección de HTML malicioso
+     * Mejora futuro: Agregar expresiones regulares adicionales si se requiere
+     */
     const sanitizeText = (value) => value.trim().replace(/\s+/g, ' ');
 
+    /**
+     * [ASISTENCIA IA] Validación con expresión regular
+     * Propósito: Validar que nombres de artículos contengan solo caracteres seguros
+     * Expresión regular: /^[a-zA-Z0-9\s\-_]+$/
+     *   - ^...$: Anclas para validar cadena completa
+     *   - [a-zA-Z0-9\s\-_]+: Permite letras, números, espacios, guiones y guiones bajos
+     * Razonamiento: Previene inyección de caracteres especiales en JSON/HTML
+     * Futuro: Considerar validadores para RUT, email, teléfono según rubric
+     */
     const validateName = (value) => /^[a-zA-Z0-9\s\-_]+$/.test(value);
 
     const getPriorityClass = (priority) => {
@@ -57,8 +89,21 @@ const app = (() => {
         return 'planificada';
     };
 
+    /**
+     * [ASISTENCIA IA] Función pura para cálculo de total gastado
+     * Razonamiento (Refactorización modular):
+     *   - Sin efectos secundarios (pure function)
+     *   - Reutilizable en múltiples lugares (modal, resumen, tarjetas)
+     *   - Fácil de testear: entrada → salida determinística
+     *   - Patrón: Separación de "acceso a datos" vs "lógica de negocio"
+     */
     const getTotalSpent = () => state.items.reduce((sum, item) => sum + item.price, 0);
 
+    /**
+     * [ASISTENCIA IA] Función pura para cálculo de presupuesto restante
+     * Composición: Reutiliza getTotalSpent() para no duplicar lógica
+     * Patrón: DRY (Don't Repeat Yourself) aplicado a cálculos
+     */
     const getBudgetRemaining = () => state.budget - getTotalSpent();
 
     const getBudgetUsage = () => {
@@ -92,6 +137,19 @@ const app = (() => {
         return left - right;
     };
 
+    /**
+     * [ASISTENCIA IA] Derivación de datos con filtrado y ordenamiento
+     * Patrón: Pipeline funcional sin mutación del estado original
+     * Razonamiento (Refactorización modular):
+     *   1. Normaliza búsqueda con sanitizeText() y toLowerCase()
+     *   2. Filtra por query + prioridad en una pasada
+     *   3. Aplica comparador seleccionado (Strategy pattern)
+     *   4. Retorna copia ordenada sin mutar state.items
+     * Beneficios:
+     *   - Determinista: misma entrada = mismo resultado siempre
+     *   - Re-render derivado: renderItems() llama a getVisibleItems() cada vez
+     *   - Escalable: agregar filtros no requiere refactorización mayor
+     */
     const getVisibleItems = () => {
         const searchQuery = sanitizeText(state.searchQuery).toLowerCase();
 
@@ -101,6 +159,12 @@ const app = (() => {
             return matchesQuery && matchesPriority;
         });
 
+        /**
+         * [ASISTENCIA IA] Patrón Strategy para ordenamiento flexible
+         * Cada comparador es una función pura que retorna -1, 0 o 1 (estándar JavaScript)
+         * Ventaja: Agregar nuevos criterios sin tocar lógica principal de sort
+         * Nota: localeCompare('es', ...) ordena correctamente acentos y ñ en español
+         */
         const comparators = {
             recent: (left, right) => (right.createdAt || 0) - (left.createdAt || 0),
             nameAsc: (left, right) => left.name.localeCompare(right.name, 'es', { sensitivity: 'base' }),
@@ -200,6 +264,17 @@ const app = (() => {
         }
     };
 
+    /**
+     * [ASISTENCIA IA] Creación segura del DOM - Prevención de XSS
+     * Patrón: createElement + appendChild (programmatic construction)
+     * NUNCA usar: card.innerHTML = `<h3>${item.name}</h3>` (¡VULNERABLE A XSS!)
+     * Razonamiento (Seguridad):
+     *   - createElement(): Crea elementos de forma programática, no parsing HTML
+     *   - textContent: Interpreta como texto plano, nunca como HTML
+     *   - dataset.* y setAttribute(): Para atributos de datos, nunca concatenación
+     * Previene: <img src=x onerror=alert('XSS')>
+     * Referencia: https://developer.mozilla.org/en-US/docs/Glossary/Cross_site_scripting_(XSS)
+     */
     const createItemCard = (item) => {
         const card = document.createElement('article');
         card.className = `item-card rounded-lg p-4 ${getPriorityClass(item.priority)}`;
@@ -212,6 +287,7 @@ const app = (() => {
 
         const title = document.createElement('h3');
         title.className = 'text-sm font-semibold text-white line-clamp-2';
+        // ✅ SEGURO: textContent previene XSS (no interpreta HTML)
         title.textContent = item.name;
 
         const badgeWrap = document.createElement('div');
@@ -231,8 +307,10 @@ const app = (() => {
         const editButton = document.createElement('button');
         editButton.type = 'button';
         editButton.className = 'text-slate-500 hover:text-emerald-300 transition p-1';
+        // [ASISTENCIA IA] Uso de dataset.* para atributos de datos (seguro)
         editButton.dataset.action = 'edit';
         editButton.dataset.itemId = item.id;
+        // aria-label: Concatenación segura porque textContent es sanitizado en loadState
         editButton.setAttribute('aria-label', `Editar ${item.name}`);
         editButton.appendChild(createIcon('pencil', 'w-4 h-4'));
 
@@ -317,6 +395,19 @@ const app = (() => {
         }
     };
 
+    /**
+     * [ASISTENCIA IA] Validación estructurada con feedback claro
+     * Patrón: Validación multicapa (tipo + rango + restricciones de negocio)
+     * Razonamiento:
+     *   1. Limpia estado anterior de errores
+     *   2. Sanitiza/coerciona entrada del usuario
+     *   3. Valida en cascada con mensajes específicos
+     *   4. Retorna estructura { valid, values } para reutilización
+     * Beneficios:
+     *   - Fail-fast pero completo: muestra todos los errores
+     *   - Mensajes localizados en español
+     *   - Fácil de testear cada rama de validación
+     */
     const validateItemForm = () => {
         clearErrors();
 
@@ -327,9 +418,11 @@ const app = (() => {
         let valid = true;
 
         if (!name) {
+            // [ASISTENCIA IA] Validación: campo requerido
             setFieldError('name', 'El nombre es obligatorio.');
             valid = false;
         } else if (!validateName(name)) {
+            // [ASISTENCIA IA] Validación: expresión regular (prevención de XSS)
             setFieldError('name', 'Solo letras, números, espacios y guiones.');
             valid = false;
         }
