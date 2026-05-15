@@ -23,8 +23,8 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div class="flex items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
-                        <a href="index.html" class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-8 h-8 text-emerald-500 logo-setupvault transition-all duration-300">
+                        <a href="https://github.com/vicentemrk" target="_blank" rel="noopener noreferrer" aria-label="Perfil de GitHub de Vicente Carrillo" class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center transition-all duration-300 hover:scale-105 hover:bg-emerald-500/20 hover:border-emerald-400 group">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-8 h-8 text-emerald-500 logo-setupvault transition-all duration-300 group-hover:text-emerald-400">
                                 <!-- Glowing Hexagon Background Pattern -->
                                 <g opacity="0.15">
                                     <path d="M50 5 L85 25 L85 75 L50 95 L15 75 L15 25 Z" />
@@ -222,11 +222,21 @@
 
         <footer class="bg-slate-950/80 backdrop-blur-md border-t border-white/10 py-6 mt-auto shrink-0 z-10">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-                <p class="text-sm text-slate-500">© 2026 SetupVault. Todos los derechos reservados.</p>
-                <a href="https://github.com/vicentemrk" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center sm:justify-start gap-2 text-sm text-slate-400 hover:text-emerald-400 transition-colors">
-                    <i data-lucide="github" stroke-width="1.5" class="w-4 h-4"></i>
-                    <span>@vicentemrk</span>
-                </a>
+                <div class="flex items-center gap-2 justify-center sm:justify-start">
+                    <i data-lucide="shield-check" stroke-width="1.5" class="w-4 h-4 text-emerald-500"></i>
+                    <p class="text-sm text-slate-500">© 2026 SetupVault. Todos los derechos reservados.</p>
+                </div>
+                <div class="flex items-center justify-center sm:justify-end gap-4 text-sm">
+                    <a href="https://github.com/vicentemrk/Sumativa-2_SetupVault" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-slate-400 hover:text-emerald-400 transition-colors">
+                        <i data-lucide="folder-git-2" stroke-width="1.5" class="w-4 h-4"></i>
+                        <span>Repositorio</span>
+                    </a>
+                    <span class="text-white/10">|</span>
+                    <a href="https://github.com/vicentemrk" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-slate-400 hover:text-emerald-400 transition-colors">
+                        <i data-lucide="github" stroke-width="1.5" class="w-4 h-4"></i>
+                        <span>@vicentemrk</span>
+                    </a>
+                </div>
             </div>
         </footer>
     </div>
@@ -254,13 +264,13 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="sm:col-span-2">
                             <label for="input-name" class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Nombre</label>
-                            <input id="input-name" type="text" placeholder="Ej: RTX 4060" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
+                            <input id="input-name" type="text" maxlength="80" required placeholder="Ej: RTX 4060" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
                             <p id="error-name" class="field-error hidden"></p>
                         </div>
 
                         <div>
                             <label for="input-price" class="text-xs font-medium text-slate-300 uppercase tracking-wider mb-2 block">Precio (CLP)</label>
-                            <input id="input-price" type="number" placeholder="45000" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
+                            <input id="input-price" type="number" min="1" required placeholder="Ej: 350000" class="input-field w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500">
                             <p id="error-price" class="field-error hidden"></p>
                         </div>
 

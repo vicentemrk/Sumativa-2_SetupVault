@@ -70,7 +70,7 @@ const app = (() => {
      * Razonamiento final: El patrón /^[a-zA-Z0-9\s\-_]+$/ asegura que solo se ingresen caracteres
      * alfanuméricos seguros, actuando como primera barrera contra la inyección de código.
      */
-    const validateName = (value) => /^[a-zA-Z0-9\s\-_]+$/.test(value);
+    const validateName = (value) => /^[a-zA-Z0-9\s\-_áéíóúÁÉÍÓÚñÑ]+$/.test(value);
 
     const getPriorityClass = (priority) => {
         const normalized = priority.toLowerCase();

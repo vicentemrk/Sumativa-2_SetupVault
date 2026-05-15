@@ -38,6 +38,18 @@ Se implementó un pipeline funcional inmutable en el archivo `app.js`.
 - Se utilizó el método `.reduce()` para calcular en tiempo real el gasto (`getTotalSpent`), aislando la función de efectos secundarios.
 - Se introdujo el **Patrón Strategy** a través de un diccionario de comparadores para resolver el ordenamiento. Específicamente, se codificó un algoritmo personalizado (`comparePriority`) que le otorga pesos matemáticos a los strings (Urgente = 0, Planificada = 1, Deseo = 2) y se estableció este ordenamiento como el estado por defecto (`state.sortBy = 'priority'`) desde el momento cero.
 
+## 4. Auditoría UI/UX, Accesibilidad y Design Spells
+
+El proyecto requería alcanzar un estándar de accesibilidad internacional y una interfaz que transmitiera alta calidad mediante microinteracciones sutiles ("Design Spells").
+
+**Prompt utilizado:**
+> *"Actúa como un Desarrollador Full-Stack Senior experto en diseño UI/UX, arquitectura frontend, ciberseguridad e integración de marca... Cumple todo esto la pagina web, utilizando estrictamente HTML5, CSS 5 y Vanilla JavaScript... Podrias ver que skills podriamos ocupar para mejorar el proyecto? design-spells, vibe-code-auditor, wcag-audit-patterns y project-skill-audit"*
+
+**Mejora Aplicada:**
+- **Defensa en Profundidad:** A nivel HTML5, la IA agregó validaciones semánticas como `maxlength="80"`, `min="1"` y `required` a los inputs. En la capa JS, optimizó la expresión regular `/^[a-zA-Z0-9\s\-_áéíóúÁÉÍÓÚñÑ]+$/` permitiendo caracteres en español (acentos, 'ñ') manteniendo el escudo anti-inyección.
+- **WCAG & ARIA:** Se añadieron atributos como `aria-label`, `aria-hidden` y `role="dialog"` para que los lectores de pantalla puedan interactuar correctamente con modales e iconos de acción.
+- **Design Spells:** Para dar sensación "Premium", se separó el footer con un divisor visual claro (repositorio vs perfil) y se introdujeron animaciones escalonadas (`staggered fade-in-up`) en las cards de la bóveda manipulando el `animationDelay` a través del índice del bucle en JavaScript.
+
 ---
 **Conclusión:**
 El uso de la IA en este proyecto elevó la base de código de un nivel inicial/intermedio a un **nivel de producción (Enterprise-grade)**, priorizando en todo momento la sanitización, inmutabilidad y la manipulación segura del árbol DOM.
