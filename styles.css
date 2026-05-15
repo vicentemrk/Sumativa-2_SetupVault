@@ -347,6 +347,13 @@ h1, h2, h3, h4, h5, h6 {
     color-scheme: dark;
 }
 
+.form-select option,
+.filter-field option,
+.input-field option {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
 .filter-field {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -412,6 +419,13 @@ html[data-theme="light"] select.input-field,
 html[data-theme="light"] select.filter-field,
 html[data-theme="light"] .form-select {
     color-scheme: light;
+}
+
+html[data-theme="light"] .form-select option,
+html[data-theme="light"] .filter-field option,
+html[data-theme="light"] .input-field option {
+    background-color: #ffffff;
+    color: #1e293b;
 }
 
 html[data-theme="light"] .input-field::placeholder,
